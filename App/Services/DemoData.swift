@@ -65,6 +65,24 @@ enum DemoData {
         ]
     }
 
+    static let checklists: [Checklist] = [
+        Checklist(id: UUID(uuidString: "00000000-0000-0000-0000-00000000CC01")!, tripId: tripId, memberId: members[1].id, title: "Packing — beach gear"),
+        Checklist(id: UUID(uuidString: "00000000-0000-0000-0000-00000000CC02")!, tripId: tripId, memberId: members[2].id, title: "Grocery run"),
+    ]
+
+    static var checklistItems: [ChecklistItem] {
+        let packing = checklists[0].id
+        let grocery = checklists[1].id
+        return [
+            ChecklistItem(id: UUID(), checklistId: packing, tripId: tripId, title: "Beach umbrella", assignedMemberId: members[2].id, isDone: true),
+            ChecklistItem(id: UUID(), checklistId: packing, tripId: tripId, title: "Sunscreen (SPF 50)", assignedMemberId: members[1].id, isDone: true),
+            ChecklistItem(id: UUID(), checklistId: packing, tripId: tripId, title: "Boogie boards", assignedMemberId: members[3].id, isDone: false),
+            ChecklistItem(id: UUID(), checklistId: packing, tripId: tripId, title: "Cooler", assignedMemberId: nil, isDone: false),
+            ChecklistItem(id: UUID(), checklistId: grocery, tripId: tripId, title: "Coffee", assignedMemberId: members[0].id, isDone: false),
+            ChecklistItem(id: UUID(), checklistId: grocery, tripId: tripId, title: "Breakfast stuff", assignedMemberId: nil, isDone: false),
+        ]
+    }
+
     static let suggestions: [ActivitySuggestion] = [
         ActivitySuggestion(title: "Sunset dolphin cruise", description: "Two-hour boat tour where dolphins swim alongside the wake. Kids love the upper deck.", category: "Outdoors", emoji: "🐬", costLevel: "$$"),
         ActivitySuggestion(title: "Gulf State Park bike trail", description: "Flat, shaded 28-mile trail network. Rent bikes near the pier and look for alligators at the lake.", category: "Outdoors", emoji: "🚴", costLevel: "$"),

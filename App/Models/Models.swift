@@ -154,6 +154,52 @@ struct LogisticsItem: Codable, Identifiable, Equatable {
     }
 }
 
+struct Checklist: Codable, Identifiable, Equatable {
+    let id: UUID
+    let tripId: UUID
+    let memberId: UUID
+    var title: String
+
+    enum CodingKeys: String, CodingKey {
+        case id, title
+        case tripId = "trip_id"
+        case memberId = "member_id"
+    }
+}
+
+struct ChecklistItem: Codable, Identifiable, Equatable {
+    let id: UUID
+    let checklistId: UUID
+    let tripId: UUID
+    var title: String
+    var assignedMemberId: UUID?
+    var isDone: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case id, title
+        case checklistId = "checklist_id"
+        case tripId = "trip_id"
+        case assignedMemberId = "assigned_member_id"
+        case isDone = "is_done"
+    }
+}
+
+struct TripPhoto: Codable, Identifiable, Equatable {
+    let id: UUID
+    let tripId: UUID
+    let memberId: UUID
+    let storagePath: String
+    let createdAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case tripId = "trip_id"
+        case memberId = "member_id"
+        case storagePath = "storage_path"
+        case createdAt = "created_at"
+    }
+}
+
 struct ActivitySuggestion: Codable, Identifiable, Equatable {
     var id: String { title }
     let title: String

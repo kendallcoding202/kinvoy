@@ -1,9 +1,20 @@
 # Roadmap — from vacation app to Family Hub
 
-The long-term vision: not just a vacation app, but the **family command
-center** — an app families use daily to organize life, events, and memories.
-This file captures that vision in phases so v1 ships fast and nothing gets
-lost.
+The long-term vision: the **"Operating System for Family Life"** — an app
+families open every day to plan, communicate, organize, share memories,
+preserve family history, and get AI help. Not just families with kids:
+couples, grandparents, blended families, friend groups, sports teams,
+reunion and travel groups.
+
+Why it can win: it solves the real problem of juggling five different apps
+(calendar + group text + location + lists + photos), it has daily-use surface
+area (schedule, locations, messages, grocery lists, reminders), and the
+**Family Timeline** gives it long-term emotional lock-in — an automatic
+private family history with photos, milestones, AI-written trip summaries,
+"On This Day" memories, and monthly/yearly recap stories.
+
+This file captures that vision in phases so each version ships fast and
+nothing gets lost.
 
 **Architecture note:** in the schema, a *trip* is really an **event
 workspace** — dates + members + chat + calendar + map + info. Growing into the
@@ -59,19 +70,26 @@ arrive.
 
 ## Phase 5 — Memories & differentiation
 
-- **Family Timeline**: auto-built private family history — trips, birthdays,
-  holidays, milestones, journal entries, "On This Day" memories,
-  AI-generated trip recaps
+- **Family Timeline (signature feature)**: auto-built private family
+  history — trips, birthdays, holidays, milestones, sports and school
+  memories, journal entries, "On This Day" memories, AI-written trip
+  summaries, monthly and yearly recap stories
 - Memory search ("show me all our beach trips")
-- AI vacation recap videos, printable yearly family books
+- AI vacation recap videos, automatic memory books (printable yearly
+  family books)
+- **Family AI, full version**: understands each member (ages, preferences,
+  budgets), resolves scheduling conflicts, generates itineraries, shopping
+  lists, and packing lists on request
+- Smart notifications: time-to-leave, arrival, weather alerts, packing
+  reminders, birthday reminders, event countdowns, traffic alerts
 - Smart home hooks (arrival automations, shared shopping lists)
 
 ## Monetization sketch
 
 - **Free**: one family, basic calendar, chat, shared events, limited AI,
   basic timeline
-- **Premium (subscription)**: unlimited events, advanced AI planning,
-  unlimited timeline/cloud storage, smart notifications, expense tracking,
-  premium memory features, calendar syncing
+- **Premium (subscription)**: unlimited events, advanced AI planning, smart
+  reminders, unlimited Family Timeline, expense tracking, shared cloud
+  storage, automatic memory books, AI-generated recap videos
 - Requires: email accounts (link anonymous → email), StoreKit 2 +
   server-side receipt checks, feature gating in RLS/Edge Functions

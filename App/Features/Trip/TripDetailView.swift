@@ -71,6 +71,7 @@ struct TripDetailView: View {
                 if let trip = store.trip {
                     List {
                         inviteSection(trip: trip)
+                        sharedSection
                         weatherSection(trip: trip)
                         logisticsSection
                         membersSection
@@ -123,6 +124,21 @@ struct TripDetailView: View {
 
     private func inviteMessage(trip: Trip) -> String {
         "Join our trip \"\(trip.name)\" on Getaway! Download the app, tap \"Join with invite code,\" and enter: \(trip.inviteCode)"
+    }
+
+    private var sharedSection: some View {
+        Section("Shared") {
+            NavigationLink {
+                ChecklistsView()
+            } label: {
+                Label("Packing & checklists", systemImage: "checklist")
+            }
+            NavigationLink {
+                PhotoAlbumView()
+            } label: {
+                Label("Photo album", systemImage: "photo.on.rectangle.angled")
+            }
+        }
     }
 
     private func weatherSection(trip: Trip) -> some View {
