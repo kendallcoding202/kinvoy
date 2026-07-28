@@ -1,0 +1,21 @@
+# Xcode
+*.xcodeproj
+xcuserdata/
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+
+# SPM
+.build/
+.swiftpm/
+
+# Secrets — never commit real keys
+App/Config/Secrets.swift
+
+# macOS
+.DS_Store
+
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/
