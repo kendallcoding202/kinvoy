@@ -6,8 +6,8 @@ import Foundation
 /// project URL and anon (public) key below. The anon key is safe to ship in
 /// the app binary — row-level security protects the data.
 enum AppConfig {
-    static let supabaseURL = "EDIT_ME_SUPABASE_URL"      // e.g. https://abcdefgh.supabase.co
-    static let supabaseAnonKey = "EDIT_ME_SUPABASE_ANON_KEY"
+    static let supabaseURL = "https://rrcgwnwvpfczcndxpozz.supabase.co"
+    static let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyY2d3bnd2cGZjemNuZHhwb3p6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNTg5ODEsImV4cCI6MjEwMDgzNDk4MX0.oCVUCzG3Pgp9aUN64VUGGmMuI8fuo56GETVO6fFZ-Es"
 
     /// True once real values have been pasted in above.
     static var isConfigured: Bool {

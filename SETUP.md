@@ -34,7 +34,7 @@ Requires the [Supabase CLI](https://supabase.com/docs/guides/cli) (`brew install
 supabase login
 supabase link --project-ref YOUR_PROJECT_REF   # ref is in the dashboard URL
 supabase secrets set ANTHROPIC_API_KEY=sk-ant-YOUR-KEY
-supabase functions deploy suggest-activities
+supabase functions deploy suggest-activites
 ```
 
 Get an Anthropic API key at [console.anthropic.com](https://console.anthropic.com).

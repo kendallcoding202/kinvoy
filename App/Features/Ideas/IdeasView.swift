@@ -32,8 +32,9 @@ final class IdeasViewModel: ObservableObject {
             let notes: String?
         }
         do {
+            // Note: the deployed function name really is "suggest-activites" (sic).
             let response: SuggestionResponse = try await client.functions.invoke(
-                "suggest-activities",
+                "suggest-activites",
                 options: FunctionInvokeOptions(body: Payload(
                     destination: trip.destination,
                     start_date: trip.startsOn,

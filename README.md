@@ -32,7 +32,7 @@ App/                        SwiftUI app (iOS 17+)
   Features/                 One folder per tab + onboarding
 supabase/
   migrations/001_init.sql   Tables, invite-code RPCs, row-level security
-  functions/                suggest-activities (Claude API, server-side)
+  functions/                suggest-activites (Claude API, server-side)
 SETUP.md                    Step-by-step backend setup
 ROADMAP.md                  The bigger Family Hub vision, phased
 ```

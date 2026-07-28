@@ -1,6 +1,6 @@
-// Supabase Edge Function: suggest-activities
+// Supabase Edge Function: suggest-activites
 // Calls the Claude API server-side so the Anthropic key never ships in the app.
-// Deploy:  supabase functions deploy suggest-activities
+// Deploy:  supabase functions deploy suggest-activites
 // Secret:  supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 
 import Anthropic from "npm:@anthropic-ai/sdk";
@@ -63,7 +63,7 @@ Respond with ONLY a JSON object in exactly this shape, no other text:
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("suggest-activities failed:", error);
+    console.error("suggest-activites failed:", error);
     return new Response(JSON.stringify({ error: "suggestion generation failed" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
