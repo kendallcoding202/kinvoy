@@ -43,8 +43,10 @@ struct RootView: View {
         .onChange(of: store.isDemo) {
             if store.isDemo { familyStore.enterDemo() }
         }
-        .onChange(of: store.trip?.id) {
-            // Reconfigure (and stop) location sharing whenever the active trip changes.
+        .onChange(of: store.currentMember?.id, initial: true) {
+            // currentMember is the last thing set when a trip loads or changes,
+            // so this fires once trip + member are both known. Stops sharing
+            // first so a trip switch never leaks the old trip's pin.
             locationService.setSharing(false)
             if let trip = store.trip, let member = store.currentMember {
                 locationService.configure(trip: trip, memberId: member.id, isDemo: store.isDemo)
