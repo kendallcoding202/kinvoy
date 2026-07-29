@@ -4,6 +4,7 @@ struct CreateTripView: View {
     @EnvironmentObject private var store: TripStore
     @Environment(\.dismiss) private var dismiss
 
+    @State private var kind: TripKind = .vacation
     @State private var name = ""
     @State private var destination = ""
     @State private var displayName = ""
@@ -22,9 +23,14 @@ struct CreateTripView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Trip") {
-                    TextField("Trip name (e.g. Beach Week 2026)", text: $name)
-                    TextField("Destination (city or place)", text: $destination)
+                Section("Event") {
+                    Picker("Type", selection: $kind) {
+                        ForEach(TripKind.allCases) { kind in
+                            Text("\(kind.emoji)  \(kind.label)").tag(kind)
+                        }
+                    }
+                    TextField("Name (e.g. Beach Week 2026)", text: $name)
+                    TextField("Destination or location", text: $destination)
                 }
                 Section("Dates") {
                     DatePicker("Starts", selection: $startDate, displayedComponents: .date)
@@ -71,7 +77,8 @@ struct CreateTripView: View {
                     destination: destination.trimmingCharacters(in: .whitespaces),
                     startsOn: startDate,
                     endsOn: endDate,
-                    displayName: displayName.trimmingCharacters(in: .whitespaces)
+                    displayName: displayName.trimmingCharacters(in: .whitespaces),
+                    kind: kind
                 )
                 dismiss()
             } catch {

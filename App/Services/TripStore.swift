@@ -35,7 +35,7 @@ final class TripStore: ObservableObject {
         }
     }
 
-    func createTrip(name: String, destination: String, startsOn: Date, endsOn: Date, displayName: String) async throws {
+    func createTrip(name: String, destination: String, startsOn: Date, endsOn: Date, displayName: String, kind: TripKind = .vacation) async throws {
         try await SupabaseService.shared.ensureSignedIn()
         let params: [String: String] = [
             "p_name": name,
@@ -43,6 +43,7 @@ final class TripStore: ObservableObject {
             "p_starts_on": Trip.dayFormatter.string(from: startsOn),
             "p_ends_on": Trip.dayFormatter.string(from: endsOn),
             "p_display_name": displayName,
+            "p_kind": kind.rawValue,
         ]
         let bundle: TripBundle = try await client
             .rpc("create_trip", params: params)

@@ -138,6 +138,16 @@ struct TripDetailView: View {
             } label: {
                 Label("Photo album", systemImage: "photo.on.rectangle.angled")
             }
+            NavigationLink {
+                ExpensesView()
+            } label: {
+                Label("Expenses", systemImage: "dollarsign.circle")
+            }
+            NavigationLink {
+                IdeasView()
+            } label: {
+                Label("Ideas", systemImage: "sparkles")
+            }
         }
     }
 

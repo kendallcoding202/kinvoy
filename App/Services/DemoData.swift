@@ -83,6 +83,34 @@ enum DemoData {
         ]
     }
 
+    static var expenses: [Expense] {
+        [
+            Expense(id: UUID(), tripId: tripId, memberId: members[1].id, title: "Beach condo (3 nights)", amountCents: 68400, createdAt: .now.addingTimeInterval(-90000)),
+            Expense(id: UUID(), tripId: tripId, memberId: members[2].id, title: "Groceries", amountCents: 14275, createdAt: .now.addingTimeInterval(-80000)),
+            Expense(id: UUID(), tripId: tripId, memberId: members[0].id, title: "Dolphin cruise tickets", amountCents: 18000, createdAt: .now.addingTimeInterval(-3600)),
+        ]
+    }
+
+    static var polls: [Poll] {
+        [Poll(
+            id: UUID(uuidString: "00000000-0000-0000-0000-00000000DD01")!,
+            tripId: tripId,
+            memberId: members[1].id,
+            question: "Beach or pool tomorrow morning?",
+            options: ["Beach 🏖️", "Pool 🏊", "Sleep in 😴"],
+            createdAt: .now.addingTimeInterval(-3000)
+        )]
+    }
+
+    static var pollVotes: [PollVote] {
+        let poll = polls[0].id
+        return [
+            PollVote(pollId: poll, tripId: tripId, memberId: members[1].id, optionIndex: 0),
+            PollVote(pollId: poll, tripId: tripId, memberId: members[2].id, optionIndex: 0),
+            PollVote(pollId: poll, tripId: tripId, memberId: members[3].id, optionIndex: 2),
+        ]
+    }
+
     static let suggestions: [ActivitySuggestion] = [
         ActivitySuggestion(title: "Sunset dolphin cruise", description: "Two-hour boat tour where dolphins swim alongside the wake. Kids love the upper deck.", category: "Outdoors", emoji: "🐬", costLevel: "$$"),
         ActivitySuggestion(title: "Gulf State Park bike trail", description: "Flat, shaded 28-mile trail network. Rent bikes near the pier and look for alligators at the lake.", category: "Outdoors", emoji: "🚴", costLevel: "$"),
