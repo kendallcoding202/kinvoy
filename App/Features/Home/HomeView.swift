@@ -71,13 +71,17 @@ final class HomeViewModel: ObservableObject {
 
 struct HomeView: View {
     @EnvironmentObject private var store: TripStore
+    @EnvironmentObject private var familyStore: FamilyStore
     @StateObject private var viewModel = HomeViewModel()
+    @State private var showCreateFamily = false
+    @State private var showJoinFamily = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 if let trip = store.trip {
                     VStack(alignment: .leading, spacing: 18) {
+                        familyCard
                         header(trip: trip)
                         if !viewModel.forecast.isEmpty {
                             weatherCard
@@ -91,6 +95,8 @@ struct HomeView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Home")
+            .sheet(isPresented: $showCreateFamily) { FamilySetupView(mode: .create) }
+            .sheet(isPresented: $showJoinFamily) { FamilySetupView(mode: .join) }
             .onAppear {
                 if let trip = store.trip {
                     viewModel.start(trip: trip, isDemo: store.isDemo)
@@ -98,6 +104,63 @@ struct HomeView: View {
             }
             .onDisappear { viewModel.stop() }
         }
+    }
+
+    @ViewBuilder
+    private var familyCard: some View {
+        if let family = familyStore.family {
+            NavigationLink {
+                FamilyDetailView()
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "house.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                        .frame(width: 42, height: 42)
+                        .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 12))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(family.name)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        Text(memberSummary)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(14)
+                .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+            }
+            .buttonStyle(.plain)
+        } else {
+            VStack(alignment: .leading, spacing: 10) {
+                Label("Set up your family", systemImage: "house.badge.plus")
+                    .font(.headline)
+                Text("One standing chat, a shared calendar, and always-on location — here every day, not just on trips.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Button("Create family") { showCreateFamily = true }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                    Button("Join with code") { showJoinFamily = true }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                }
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+        }
+    }
+
+    private var memberSummary: String {
+        let names = familyStore.members.map(\.displayName)
+        if names.isEmpty { return "Just you so far — invite everyone" }
+        return names.count <= 4 ? names.joined(separator: ", ") : "\(names.count) members"
     }
 
     private func header(trip: Trip) -> some View {

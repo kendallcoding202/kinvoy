@@ -363,6 +363,83 @@ struct AddFamilyEventView: View {
     }
 }
 
+// MARK: - Family management
+
+struct FamilyDetailView: View {
+    @EnvironmentObject private var familyStore: FamilyStore
+    @EnvironmentObject private var locationService: LocationService
+
+    var body: some View {
+        List {
+            if let family = familyStore.family {
+                Section("Invite to the family") {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(family.inviteCode)
+                                .font(.system(.title, design: .monospaced).weight(.bold))
+                                .kerning(3)
+                            Text("Family members enter this code once — then every trip is one tap away.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        ShareLink(item: "Join our family \"\(family.name)\" on Kinvoy! Download the app, tap \"Join with code\" on the Home screen, and enter: \(family.inviteCode)") {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.title3)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+
+                Section("Members") {
+                    ForEach(familyStore.members) { member in
+                        HStack {
+                            Text(String(member.displayName.prefix(1)).uppercased())
+                                .font(.subheadline.weight(.bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 30, height: 30)
+                                .background(Color.accentColor, in: Circle())
+                            Text(member.displayName)
+                            if member.id == familyStore.currentMember?.id {
+                                Text("You")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+
+                Section {
+                    Toggle(isOn: Binding(
+                        get: { locationService.isFamilySharing },
+                        set: { locationService.setFamilySharing($0) }
+                    )) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Always share my location")
+                            Text("Only your family sees it. Off anytime.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } footer: {
+                    Text("Family chat, calendar, and the family map live in the Chat, Plans, and Map tabs — flip the Trip/Family switch at the top.")
+                }
+
+                Section {
+                    Button("Leave family", role: .destructive) {
+                        Task { await familyStore.leaveFamily() }
+                    }
+                }
+            }
+        }
+        .navigationTitle(familyStore.family?.name ?? "Family")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await familyStore.refreshMembers()
+        }
+    }
+}
+
 // MARK: - Family setup (create / join)
 
 struct FamilySetupView: View {

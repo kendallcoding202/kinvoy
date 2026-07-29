@@ -73,7 +73,6 @@ struct TripDetailView: View {
                 if let trip = store.trip {
                     List {
                         inviteSection(trip: trip)
-                        familySection
                         sharedSection
                         weatherSection(trip: trip)
                         logisticsSection
@@ -103,8 +102,6 @@ struct TripDetailView: View {
             }
             .sheet(isPresented: $showCreateTrip) { CreateTripView() }
             .sheet(isPresented: $showJoinTrip) { JoinTripView() }
-            .sheet(isPresented: $showCreateFamily) { FamilySetupView(mode: .create) }
-            .sheet(isPresented: $showJoinFamily) { FamilySetupView(mode: .join) }
         }
     }
 
@@ -131,50 +128,6 @@ struct TripDetailView: View {
 
     private func inviteMessage(trip: Trip) -> String {
         "Join our trip \"\(trip.name)\" on Kinvoy! Download the app, tap \"Join with invite code,\" and enter: \(trip.inviteCode)"
-    }
-
-    @EnvironmentObject private var familyStore: FamilyStore
-    @State private var showCreateFamily = false
-    @State private var showJoinFamily = false
-
-    @ViewBuilder
-    private var familySection: some View {
-        Section {
-            if let family = familyStore.family {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(family.name)
-                            .font(.body.weight(.semibold))
-                        Text("Code \(family.inviteCode) · \(familyStore.members.count) member\(familyStore.members.count == 1 ? "" : "s")")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    ShareLink(item: "Join our family \"\(family.name)\" on Kinvoy! Download the app, then in the Trip tab choose \"Join a family\" and enter: \(family.inviteCode)") {
-                        Image(systemName: "square.and.arrow.up")
-                    }
-                }
-                Text("Family chat, calendar, and always-on location live in the Chat, Plans, and Map tabs — flip the Trip/Family switch at the top of each.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("Your family group lives above trips: one standing chat, a shared calendar, and always-on location for whoever opts in.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Button {
-                    showCreateFamily = true
-                } label: {
-                    Label("Create your family", systemImage: "house.badge.plus")
-                }
-                Button {
-                    showJoinFamily = true
-                } label: {
-                    Label("Join a family", systemImage: "person.badge.key")
-                }
-            }
-        } header: {
-            Text("Family")
-        }
     }
 
     private var sharedSection: some View {
