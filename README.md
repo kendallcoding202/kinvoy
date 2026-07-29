@@ -1,6 +1,6 @@
-# Getaway 🌅
+# Kinvoy 🌅
 
-A family vacation app: one place for the trip's plans, chat, locations, travel
+Kinvoy (working codename "Getaway") is a family vacation app: one place for the trip's plans, chat, locations, travel
 info, and ideas. Built with SwiftUI + Supabase.
 
 ## What it does (v1)

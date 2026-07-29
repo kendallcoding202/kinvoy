@@ -123,7 +123,7 @@ struct TripDetailView: View {
     }
 
     private func inviteMessage(trip: Trip) -> String {
-        "Join our trip \"\(trip.name)\" on Getaway! Download the app, tap \"Join with invite code,\" and enter: \(trip.inviteCode)"
+        "Join our trip \"\(trip.name)\" on Kinvoy! Download the app, tap \"Join with invite code,\" and enter: \(trip.inviteCode)"
     }
 
     private var sharedSection: some View {
