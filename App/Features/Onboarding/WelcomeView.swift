@@ -62,6 +62,7 @@ struct WelcomeView: View {
                     }
                 }
                 .padding(.horizontal, 24)
+                .frame(maxWidth: 480)
 
                 if !AppConfig.isConfigured {
                     Text("Backend not configured yet — see SETUP.md.\nCreate/join will work once Supabase keys are added.")
