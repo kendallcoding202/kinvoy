@@ -283,6 +283,83 @@ struct PollVote: Codable, Equatable {
     }
 }
 
+struct Family: Codable, Identifiable, Equatable {
+    let id: UUID
+    var name: String
+    let inviteCode: String
+
+    enum CodingKeys: String, CodingKey {
+        case id, name
+        case inviteCode = "invite_code"
+    }
+}
+
+struct FamilyMember: Codable, Identifiable, Equatable, Hashable {
+    let id: UUID
+    let familyId: UUID
+    let userId: UUID
+    var displayName: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case familyId = "family_id"
+        case userId = "user_id"
+        case displayName = "display_name"
+    }
+}
+
+struct FamilyMessage: Codable, Identifiable, Equatable {
+    let id: UUID
+    let familyId: UUID
+    let memberId: UUID
+    let content: String
+    let createdAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id, content
+        case familyId = "family_id"
+        case memberId = "member_id"
+        case createdAt = "created_at"
+    }
+}
+
+struct FamilyEvent: Codable, Identifiable, Equatable {
+    let id: UUID
+    let familyId: UUID
+    let memberId: UUID
+    var title: String
+    var notes: String?
+    var locationName: String?
+    var startsAt: Date
+    var endsAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, notes
+        case familyId = "family_id"
+        case memberId = "member_id"
+        case locationName = "location_name"
+        case startsAt = "starts_at"
+        case endsAt = "ends_at"
+    }
+}
+
+struct FamilyLocation: Codable, Identifiable, Equatable {
+    let memberId: UUID
+    let familyId: UUID
+    let latitude: Double
+    let longitude: Double
+    let updatedAt: Date
+
+    var id: UUID { memberId }
+
+    enum CodingKeys: String, CodingKey {
+        case memberId = "member_id"
+        case familyId = "family_id"
+        case latitude, longitude
+        case updatedAt = "updated_at"
+    }
+}
+
 struct ActivitySuggestion: Codable, Identifiable, Equatable {
     var id: String { title }
     let title: String

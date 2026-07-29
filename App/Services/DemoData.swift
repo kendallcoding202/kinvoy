@@ -111,6 +111,42 @@ enum DemoData {
         ]
     }
 
+    static let familyId = UUID(uuidString: "00000000-0000-0000-0000-00000000FFFF")!
+
+    static var family: Family {
+        Family(id: familyId, name: "The Sorensons", inviteCode: "FAM123")
+    }
+
+    static let familyMembers: [FamilyMember] = [
+        FamilyMember(id: UUID(uuidString: "00000000-0000-0000-0000-00000000F001")!, familyId: familyId, userId: UUID(), displayName: "You"),
+        FamilyMember(id: UUID(uuidString: "00000000-0000-0000-0000-00000000F002")!, familyId: familyId, userId: UUID(), displayName: "Mom"),
+        FamilyMember(id: UUID(uuidString: "00000000-0000-0000-0000-00000000F003")!, familyId: familyId, userId: UUID(), displayName: "Dad"),
+        FamilyMember(id: UUID(uuidString: "00000000-0000-0000-0000-00000000F004")!, familyId: familyId, userId: UUID(), displayName: "Riley"),
+    ]
+
+    static var familyMessages: [FamilyMessage] {
+        [
+            FamilyMessage(id: UUID(), familyId: familyId, memberId: familyMembers[1].id, content: "Who's home for dinner tonight?", createdAt: .now.addingTimeInterval(-5400)),
+            FamilyMessage(id: UUID(), familyId: familyId, memberId: familyMembers[3].id, content: "Me! Practice ends at 5", createdAt: .now.addingTimeInterval(-5000)),
+        ]
+    }
+
+    static var familyEvents: [FamilyEvent] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: .now)
+        return [
+            FamilyEvent(id: UUID(), familyId: familyId, memberId: familyMembers[1].id, title: "Riley's soccer game", notes: nil, locationName: "City Park field 3", startsAt: cal.date(byAdding: DateComponents(day: 2, hour: 17), to: today)!, endsAt: nil),
+            FamilyEvent(id: UUID(), familyId: familyId, memberId: familyMembers[2].id, title: "Grandma's birthday dinner", notes: "Bring the card!", locationName: nil, startsAt: cal.date(byAdding: DateComponents(day: 5, hour: 18), to: today)!, endsAt: nil),
+        ]
+    }
+
+    static var familyLocations: [FamilyLocation] {
+        [
+            FamilyLocation(memberId: familyMembers[1].id, familyId: familyId, latitude: 30.2500, longitude: -87.6900, updatedAt: .now.addingTimeInterval(-200)),
+            FamilyLocation(memberId: familyMembers[2].id, familyId: familyId, latitude: 30.2610, longitude: -87.6750, updatedAt: .now.addingTimeInterval(-500)),
+        ]
+    }
+
     static let suggestions: [ActivitySuggestion] = [
         ActivitySuggestion(title: "Sunset dolphin cruise", description: "Two-hour boat tour where dolphins swim alongside the wake. Kids love the upper deck.", category: "Outdoors", emoji: "🐬", costLevel: "$$"),
         ActivitySuggestion(title: "Gulf State Park bike trail", description: "Flat, shaded 28-mile trail network. Rent bikes near the pier and look for alligators at the lake.", category: "Outdoors", emoji: "🚴", costLevel: "$"),

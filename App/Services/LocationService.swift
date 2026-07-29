@@ -8,14 +8,20 @@ import Supabase
 @MainActor
 final class LocationService: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var isSharing = false
+    /// Always-on family sharing — no date window, opt-in, off by default.
+    @Published var isFamilySharing = false
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     @Published var lastError: String?
 
     private let manager = CLLocationManager()
     private var trip: Trip?
     private var memberId: UUID?
+    private var familyId: UUID?
+    private var familyMemberId: UUID?
     private var isDemo = false
     private var lastUpload: Date = .distantPast
+    private var lastFamilyUpload: Date = .distantPast
+    private let familySharingKey = "familySharingEnabled"
 
     private var client: SupabaseClient { SupabaseService.shared.client }
 
@@ -31,6 +37,51 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         self.trip = trip
         self.memberId = memberId
         self.isDemo = isDemo
+    }
+
+    /// Called once the family group is known; restores the always-on toggle.
+    func configureFamily(familyId: UUID, familyMemberId: UUID) {
+        self.familyId = familyId
+        self.familyMemberId = familyMemberId
+        if UserDefaults.standard.bool(forKey: familySharingKey), !isFamilySharing {
+            setFamilySharing(true)
+        }
+    }
+
+    func setFamilySharing(_ enabled: Bool) {
+        UserDefaults.standard.set(enabled, forKey: familySharingKey)
+        guard enabled else {
+            isFamilySharing = false
+            stopManagerIfIdle()
+            guard !isDemo, let familyMemberId else { return }
+            Task {
+                _ = try? await client.from("family_locations").delete()
+                    .eq("member_id", value: familyMemberId.uuidString)
+                    .execute()
+            }
+            return
+        }
+        if isDemo {
+            isFamilySharing = true
+            return
+        }
+        switch manager.authorizationStatus {
+        case .notDetermined:
+            manager.requestWhenInUseAuthorization()
+            isFamilySharing = true
+        case .authorizedWhenInUse, .authorizedAlways:
+            isFamilySharing = true
+            manager.startUpdatingLocation()
+        default:
+            lastError = "Location permission is denied. Enable it in Settings to share your location."
+            isFamilySharing = false
+        }
+    }
+
+    private func stopManagerIfIdle() {
+        if !isSharing && !isFamilySharing {
+            manager.stopUpdatingLocation()
+        }
     }
 
     var tripIsActive: Bool {
@@ -67,7 +118,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
 
     private func stopSharing() {
         isSharing = false
-        manager.stopUpdatingLocation()
+        stopManagerIfIdle()
         guard !isDemo, let memberId else { return }
         Task {
             _ = try? await client.from("locations").delete()
@@ -87,10 +138,11 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         let status = manager.authorizationStatus
         Task { @MainActor in
             self.authorizationStatus = status
-            if self.isSharing, status == .authorizedWhenInUse || status == .authorizedAlways {
+            if (self.isSharing || self.isFamilySharing), status == .authorizedWhenInUse || status == .authorizedAlways {
                 manager.startUpdatingLocation()
             } else if status == .denied || status == .restricted {
                 self.isSharing = false
+                self.isFamilySharing = false
             }
         }
     }
@@ -107,6 +159,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     }
 
     private func upload(_ location: CLLocation) async {
+        await uploadFamily(location)
         guard isSharing, tripIsActive, !isDemo,
               let memberId, let trip,
               Date.now.timeIntervalSince(lastUpload) > 15 else { return }
@@ -131,6 +184,34 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
                 .execute()
         } catch {
             print("Location upload failed: \(error)")
+        }
+    }
+
+    private func uploadFamily(_ location: CLLocation) async {
+        guard isFamilySharing, !isDemo,
+              let familyId, let familyMemberId,
+              Date.now.timeIntervalSince(lastFamilyUpload) > 15 else { return }
+        lastFamilyUpload = .now
+        struct FamilyLocationUpsert: Encodable {
+            let member_id: String
+            let family_id: String
+            let latitude: Double
+            let longitude: Double
+            let updated_at: String
+        }
+        let row = FamilyLocationUpsert(
+            member_id: familyMemberId.uuidString,
+            family_id: familyId.uuidString,
+            latitude: location.coordinate.latitude,
+            longitude: location.coordinate.longitude,
+            updated_at: ISO8601DateFormatter().string(from: .now)
+        )
+        do {
+            _ = try await client.from("family_locations")
+                .upsert(row, onConflict: "member_id")
+                .execute()
+        } catch {
+            print("Family location upload failed: \(error)")
         }
     }
 }
