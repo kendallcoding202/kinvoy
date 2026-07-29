@@ -11,6 +11,8 @@ final class TripStore: ObservableObject {
     @Published var myTrips: [Trip] = []
     @Published var isLoading = true
     @Published var isDemo = false
+    /// Whether the full-screen trip workspace is presented.
+    @Published var showTripWorkspace = false
     /// Invite code arriving via a kinvoy://join/CODE deep link.
     @Published var pendingJoinCode: JoinCode?
 

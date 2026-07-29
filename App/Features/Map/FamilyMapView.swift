@@ -47,78 +47,42 @@ final class FamilyMapViewModel: ObservableObject {
     }
 }
 
-struct FamilyMapView: View {
+struct TripMapView: View {
     @EnvironmentObject private var store: TripStore
-    @EnvironmentObject private var familyStore: FamilyStore
     @EnvironmentObject private var locationService: LocationService
     @StateObject private var viewModel = FamilyMapViewModel()
-    @StateObject private var familyViewModel = FamilyLocationsViewModel()
     @State private var cameraPosition: MapCameraPosition = .automatic
-    @State private var scope: MapScope = .trip
-
-    enum MapScope {
-        case trip, family
-    }
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
                 map
-                VStack(spacing: 8) {
-                    if familyStore.family != nil {
-                        Picker("Scope", selection: $scope) {
-                            Text("\(store.trip?.kindOrDefault.emoji ?? "🧳") Trip").tag(MapScope.trip)
-                            Text("🏠 Family").tag(MapScope.family)
-                        }
-                        .pickerStyle(.segmented)
-                    }
-                    sharePanel
-                }
-                .padding()
+                sharePanel
+                    .padding()
             }
-            .navigationTitle(scope == .family ? "Family Map" : "Trip Map")
+            .navigationTitle("Trip Map")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 if let trip = store.trip {
                     viewModel.start(trip: trip, isDemo: store.isDemo)
                     locationService.enforceTripWindow()
                 }
-                if let family = familyStore.family {
-                    familyViewModel.start(family: family, isDemo: familyStore.isDemo)
-                }
             }
-            .onDisappear {
-                viewModel.stop()
-                familyViewModel.stop()
-            }
+            .onDisappear { viewModel.stop() }
         }
     }
 
     private var map: some View {
         Map(position: $cameraPosition) {
-            if scope == .trip {
-                ForEach(viewModel.locations) { location in
-                    Annotation(
-                        store.member(for: location.memberId)?.displayName ?? "Family",
-                        coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
-                    ) {
-                        MemberPin(
-                            name: store.member(for: location.memberId)?.displayName ?? "?",
-                            isStale: Date.now.timeIntervalSince(location.updatedAt) > 600
-                        )
-                    }
-                }
-            } else {
-                ForEach(familyViewModel.locations) { location in
-                    Annotation(
-                        familyStore.member(for: location.memberId)?.displayName ?? "Family",
-                        coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
-                    ) {
-                        MemberPin(
-                            name: familyStore.member(for: location.memberId)?.displayName ?? "?",
-                            isStale: Date.now.timeIntervalSince(location.updatedAt) > 900
-                        )
-                    }
+            ForEach(viewModel.locations) { location in
+                Annotation(
+                    store.member(for: location.memberId)?.displayName ?? "Family",
+                    coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
+                ) {
+                    MemberPin(
+                        name: store.member(for: location.memberId)?.displayName ?? "?",
+                        isStale: Date.now.timeIntervalSince(location.updatedAt) > 600
+                    )
                 }
             }
             UserAnnotation()
@@ -129,37 +93,21 @@ struct FamilyMapView: View {
         }
     }
 
-    @ViewBuilder
     private var sharePanel: some View {
         VStack(spacing: 8) {
-            if scope == .trip {
-                Toggle(isOn: Binding(
-                    get: { locationService.isSharing },
-                    set: { locationService.setSharing($0) }
-                )) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Share my location on this trip")
-                            .font(.subheadline.weight(.semibold))
-                        Text(shareCaption)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .disabled(!locationService.tripIsActive && !locationService.isSharing)
-            } else {
-                Toggle(isOn: Binding(
-                    get: { locationService.isFamilySharing },
-                    set: { locationService.setFamilySharing($0) }
-                )) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Always share with my family")
-                            .font(.subheadline.weight(.semibold))
-                        Text("Stays on until you turn it off. Only your family can see you.")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
+            Toggle(isOn: Binding(
+                get: { locationService.isSharing },
+                set: { locationService.setSharing($0) }
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Share my location on this trip")
+                        .font(.subheadline.weight(.semibold))
+                    Text(shareCaption)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
             }
+            .disabled(!locationService.tripIsActive && !locationService.isSharing)
 
             if let error = locationService.lastError {
                 Text(error)

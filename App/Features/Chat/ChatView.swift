@@ -159,36 +159,17 @@ final class ChatViewModel: ObservableObject {
 
 struct ChatView: View {
     @EnvironmentObject private var store: TripStore
-    @EnvironmentObject private var familyStore: FamilyStore
     @StateObject private var viewModel = ChatViewModel()
     @FocusState private var inputFocused: Bool
     @State private var showCreatePoll = false
-    @State private var scope: ChatScope = .trip
-
-    enum ChatScope {
-        case trip, family
-    }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if familyStore.family != nil {
-                    Picker("Scope", selection: $scope) {
-                        Text("\(store.trip?.kindOrDefault.emoji ?? "🧳") Trip").tag(ChatScope.trip)
-                        Text("🏠 Family").tag(ChatScope.family)
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                }
-                if scope == .family, familyStore.family != nil {
-                    FamilyChatView()
-                } else {
-                    messageList
-                    inputBar
-                }
+                messageList
+                inputBar
             }
-            .navigationTitle(scope == .family ? (familyStore.family?.name ?? "Family") : "Chat")
+            .navigationTitle("Trip chat")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showCreatePoll) {
                 CreatePollView { question, options in

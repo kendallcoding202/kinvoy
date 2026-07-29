@@ -4,6 +4,8 @@ struct WelcomeView: View {
     @EnvironmentObject private var store: TripStore
     @State private var showCreate = false
     @State private var showJoin = false
+    @State private var showCreateFamily = false
+    @State private var showJoinFamily = false
 
     var body: some View {
         NavigationStack {
@@ -26,9 +28,9 @@ struct WelcomeView: View {
 
                 VStack(spacing: 14) {
                     Button {
-                        showCreate = true
+                        showCreateFamily = true
                     } label: {
-                        Label("Start a trip", systemImage: "plus.circle.fill")
+                        Label("Set up your family", systemImage: "house.badge.plus")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
@@ -36,21 +38,27 @@ struct WelcomeView: View {
                     .buttonStyle(.borderedProminent)
 
                     Button {
-                        showJoin = true
+                        showJoinFamily = true
                     } label: {
-                        Label("Join with invite code", systemImage: "person.badge.key.fill")
+                        Label("Join a family with a code", systemImage: "person.badge.key.fill")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                     }
                     .buttonStyle(.bordered)
 
+                    HStack(spacing: 18) {
+                        Button("Start a trip instead") { showCreate = true }
+                        Button("Join a trip") { showJoin = true }
+                    }
+                    .font(.subheadline)
+                    .padding(.top, 4)
+
                     if !AppConfig.isConfigured {
-                        Button("Explore a demo trip") {
+                        Button("Explore a demo") {
                             store.enterDemo()
                         }
                         .font(.subheadline)
-                        .padding(.top, 4)
                     }
                 }
                 .padding(.horizontal, 24)
@@ -66,6 +74,8 @@ struct WelcomeView: View {
             }
             .sheet(isPresented: $showCreate) { CreateTripView() }
             .sheet(isPresented: $showJoin) { JoinTripView() }
+            .sheet(isPresented: $showCreateFamily) { FamilySetupView(mode: .create) }
+            .sheet(isPresented: $showJoinFamily) { FamilySetupView(mode: .join) }
         }
     }
 }

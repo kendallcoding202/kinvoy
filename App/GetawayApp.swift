@@ -25,9 +25,9 @@ struct RootView: View {
     var body: some View {
         Group {
             if store.isLoading {
-                ProgressView("Loading your trip…")
-            } else if store.trip != nil, store.currentMember != nil {
-                TripTabView()
+                ProgressView("Loading…")
+            } else if familyStore.family != nil || (store.trip != nil && store.currentMember != nil) {
+                MainTabView()
             } else {
                 WelcomeView()
             }

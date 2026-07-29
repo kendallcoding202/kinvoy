@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor
 final class HomeViewModel: ObservableObject {
     @Published var upcomingEvents: [TripEvent] = []
-    @Published var latestMessages: [Message] = []
+    @Published var latestFamilyMessages: [FamilyMessage] = []
     @Published var forecast: [DayForecast] = []
 
     private var client: SupabaseClient { SupabaseService.shared.client }
@@ -12,25 +12,28 @@ final class HomeViewModel: ObservableObject {
 
     private var activeTripId: UUID?
 
-    func start(trip: Trip, isDemo: Bool) {
-        if activeTripId != trip.id {
+    func start(trip: Trip?, familyId: UUID?, isDemo: Bool) {
+        if activeTripId != trip?.id {
             stop()
             upcomingEvents = []
-            latestMessages = []
             forecast = []
         }
-        activeTripId = trip.id
+        activeTripId = trip?.id
         guard pollTask == nil else { return }
         if isDemo {
             upcomingEvents = Array(DemoData.events.filter { $0.startsAt > .now.addingTimeInterval(-3600) }.prefix(3))
-            latestMessages = Array(DemoData.messages.suffix(2))
-            Task { await loadForecast(trip: trip) }
+            latestFamilyMessages = Array(DemoData.familyMessages.suffix(2))
+            if let trip {
+                Task { await loadForecast(trip: trip) }
+            }
             return
         }
         pollTask = Task {
-            await loadForecast(trip: trip)
+            if let trip {
+                await loadForecast(trip: trip)
+            }
             while !Task.isCancelled {
-                await refresh(tripId: trip.id)
+                await refresh(tripId: trip?.id, familyId: familyId)
                 try? await Task.sleep(for: .seconds(30))
             }
         }
@@ -41,24 +44,27 @@ final class HomeViewModel: ObservableObject {
         pollTask = nil
     }
 
-    private func refresh(tripId: UUID) async {
+    private func refresh(tripId: UUID?, familyId: UUID?) async {
         do {
-            let events: [TripEvent] = try await client
-                .from("events").select()
-                .eq("trip_id", value: tripId.uuidString)
-                .gte("starts_at", value: ISO8601DateFormatter().string(from: .now.addingTimeInterval(-3600)))
-                .order("starts_at")
-                .limit(3)
-                .execute().value
-            upcomingEvents = events
-
-            let messages: [Message] = try await client
-                .from("messages").select()
-                .eq("trip_id", value: tripId.uuidString)
-                .order("created_at", ascending: false)
-                .limit(2)
-                .execute().value
-            latestMessages = messages.reversed()
+            if let tripId {
+                let events: [TripEvent] = try await client
+                    .from("events").select()
+                    .eq("trip_id", value: tripId.uuidString)
+                    .gte("starts_at", value: ISO8601DateFormatter().string(from: .now.addingTimeInterval(-3600)))
+                    .order("starts_at")
+                    .limit(3)
+                    .execute().value
+                upcomingEvents = events
+            }
+            if let familyId {
+                let messages: [FamilyMessage] = try await client
+                    .from("family_messages").select()
+                    .eq("family_id", value: familyId.uuidString)
+                    .order("created_at", ascending: false)
+                    .limit(2)
+                    .execute().value
+                latestFamilyMessages = messages.reversed()
+            }
         } catch {
             print("Home refresh failed: \(error)")
         }
@@ -79,28 +85,29 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                if let trip = store.trip {
-                    VStack(alignment: .leading, spacing: 18) {
-                        familyCard
-                        header(trip: trip)
+                VStack(alignment: .leading, spacing: 18) {
+                    familyCard
+                    if let trip = store.trip {
+                        tripCard(trip: trip)
                         if !viewModel.forecast.isEmpty {
                             weatherCard
                         }
                         plansCard
-                        chatCard
-                        quickLinks
                     }
-                    .padding()
+                    chatCard
                 }
+                .padding()
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Home")
             .sheet(isPresented: $showCreateFamily) { FamilySetupView(mode: .create) }
             .sheet(isPresented: $showJoinFamily) { FamilySetupView(mode: .join) }
             .onAppear {
-                if let trip = store.trip {
-                    viewModel.start(trip: trip, isDemo: store.isDemo)
-                }
+                viewModel.start(trip: store.trip, familyId: familyStore.family?.id, isDemo: store.isDemo)
+            }
+            .onChange(of: familyStore.family?.id) {
+                viewModel.stop()
+                viewModel.start(trip: store.trip, familyId: familyStore.family?.id, isDemo: store.isDemo)
             }
             .onDisappear { viewModel.stop() }
         }
@@ -163,14 +170,31 @@ struct HomeView: View {
         return names.count <= 4 ? names.joined(separator: ", ") : "\(names.count) members"
     }
 
-    private func header(trip: Trip) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("\(trip.kindOrDefault.emoji) \(trip.name)")
-                .font(.title2.bold())
-            Text(countdownText(trip: trip))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+    private func tripCard(trip: Trip) -> some View {
+        Button {
+            store.showTripWorkspace = true
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(trip.kindOrDefault.emoji) \(trip.name)")
+                        .font(.title3.bold())
+                        .foregroundStyle(.primary)
+                    Text(countdownText(trip: trip))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text("Open")
+                    .font(.subheadline.weight(.bold))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background(Color.accentColor, in: Capsule())
+                    .foregroundStyle(.white)
+            }
+            .padding(14)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
         }
+        .buttonStyle(.plain)
     }
 
     private func countdownText(trip: Trip) -> String {
@@ -244,16 +268,20 @@ struct HomeView: View {
 
     private var chatCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Latest in chat", systemImage: "bubble.left.and.bubble.right")
+            Label("Latest in family chat", systemImage: "bubble.left.and.bubble.right")
                 .font(.headline)
-            if viewModel.latestMessages.isEmpty {
+            if familyStore.family == nil {
+                Text("Set up your family to start the standing thread.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else if viewModel.latestFamilyMessages.isEmpty {
                 Text("No messages yet — say hi in the Chat tab.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(viewModel.latestMessages) { message in
+                ForEach(viewModel.latestFamilyMessages) { message in
                     HStack(alignment: .top, spacing: 6) {
-                        Text(store.member(for: message.memberId)?.displayName ?? "Someone")
+                        Text(familyStore.member(for: message.memberId)?.displayName ?? "Someone")
                             .font(.caption.weight(.bold))
                         Text(message.content)
                             .font(.caption)
@@ -268,31 +296,4 @@ struct HomeView: View {
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
     }
 
-    private var quickLinks: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            quickLink("Ideas", icon: "sparkles") { IdeasView() }
-            quickLink("Lists", icon: "checklist") { ChecklistsView() }
-            quickLink("Photos", icon: "photo.on.rectangle.angled") { PhotoAlbumView() }
-            quickLink("Expenses", icon: "dollarsign.circle") { ExpensesView() }
-        }
-    }
-
-    private func quickLink(_ title: String, icon: String, @ViewBuilder destination: @escaping () -> some View) -> some View {
-        NavigationLink {
-            destination()
-        } label: {
-            VStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundStyle(Color.accentColor)
-                Text(title)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
-        }
-        .buttonStyle(.plain)
-    }
 }

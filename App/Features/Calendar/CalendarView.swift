@@ -92,31 +92,17 @@ final class EventsViewModel: ObservableObject {
 
 struct CalendarView: View {
     @EnvironmentObject private var store: TripStore
-    @EnvironmentObject private var familyStore: FamilyStore
     @StateObject private var viewModel = EventsViewModel()
     @State private var selectedDay: Date?
     @State private var showAdd = false
-    @State private var scope: PlansScope = .trip
-
-    enum PlansScope {
-        case trip, family
-    }
 
     private var trip: Trip? { store.trip }
 
     var body: some View {
         NavigationStack {
             Group {
-                if scope == .family, familyStore.family != nil {
+                if let trip {
                     VStack(spacing: 0) {
-                        scopePicker
-                        FamilyCalendarView()
-                    }
-                } else if let trip {
-                    VStack(spacing: 0) {
-                        if familyStore.family != nil {
-                            scopePicker
-                        }
                         dayPicker(trip: trip)
                         Divider()
                         eventList(trip: trip)
@@ -125,15 +111,13 @@ struct CalendarView: View {
                     ProgressView()
                 }
             }
-            .navigationTitle(scope == .family ? "Family calendar" : "Plans")
+            .navigationTitle("Plans")
             .toolbar {
-                if scope == .trip {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            showAdd = true
-                        } label: {
-                            Image(systemName: "plus")
-                        }
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showAdd = true
+                    } label: {
+                        Image(systemName: "plus")
                     }
                 }
             }
@@ -151,16 +135,6 @@ struct CalendarView: View {
             }
             .onDisappear { viewModel.stop() }
         }
-    }
-
-    private var scopePicker: some View {
-        Picker("Scope", selection: $scope) {
-            Text("\(store.trip?.kindOrDefault.emoji ?? "🧳") Trip").tag(PlansScope.trip)
-            Text("🏠 Family").tag(PlansScope.family)
-        }
-        .pickerStyle(.segmented)
-        .padding(.horizontal)
-        .padding(.top, 8)
     }
 
     private func dayPicker(trip: Trip) -> some View {
