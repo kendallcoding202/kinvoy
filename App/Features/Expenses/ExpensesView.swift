@@ -124,7 +124,9 @@ struct ExpensesView: View {
                 .font(.subheadline)
             }
         } header: {
-            Text("Split evenly \(store.members.count) ways")
+            Text(store.members.count <= 1
+                ? "Just you so far — invite the family to split costs"
+                : "Split evenly \(store.members.count) ways")
         }
     }
 
