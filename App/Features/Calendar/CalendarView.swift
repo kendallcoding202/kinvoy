@@ -9,7 +9,14 @@ final class EventsViewModel: ObservableObject {
     private var client: SupabaseClient { SupabaseService.shared.client }
     private var pollTask: Task<Void, Never>?
 
+    private var activeTripId: UUID?
+
     func start(trip: Trip, isDemo: Bool) {
+        if activeTripId != trip.id {
+            stop()
+            events = []
+        }
+        activeTripId = trip.id
         guard pollTask == nil else { return }
         if isDemo {
             events = DemoData.events

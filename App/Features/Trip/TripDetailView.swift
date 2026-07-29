@@ -64,6 +64,8 @@ struct TripDetailView: View {
     @StateObject private var logistics = LogisticsViewModel()
     @State private var forecast: [DayForecast] = []
     @State private var showAddLogistics = false
+    @State private var showCreateTrip = false
+    @State private var showJoinTrip = false
 
     var body: some View {
         NavigationStack {
@@ -75,6 +77,7 @@ struct TripDetailView: View {
                         weatherSection(trip: trip)
                         logisticsSection
                         membersSection
+                        myTripsSection
                         aboutSection(trip: trip)
                     }
                 } else {
@@ -82,13 +85,12 @@ struct TripDetailView: View {
                 }
             }
             .navigationTitle(store.trip?.name ?? "Trip")
-            .task {
+            .task(id: store.trip?.id) {
                 if let trip = store.trip {
                     await logistics.load(tripId: trip.id, isDemo: store.isDemo)
                     await store.refreshMembers()
-                    if forecast.isEmpty {
-                        forecast = (try? await WeatherService.forecast(for: trip)) ?? []
-                    }
+                    await store.refreshMyTrips()
+                    forecast = (try? await WeatherService.forecast(for: trip)) ?? []
                 }
             }
             .sheet(isPresented: $showAddLogistics) {
@@ -98,6 +100,8 @@ struct TripDetailView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showCreateTrip) { CreateTripView() }
+            .sheet(isPresented: $showJoinTrip) { JoinTripView() }
         }
     }
 
@@ -245,6 +249,47 @@ struct TripDetailView: View {
                     }
                 }
             }
+        }
+    }
+
+    private var myTripsSection: some View {
+        Section {
+            ForEach(store.myTrips) { candidate in
+                Button {
+                    Task { await store.switchTrip(to: candidate) }
+                } label: {
+                    HStack {
+                        Text(candidate.kindOrDefault.emoji)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(candidate.name)
+                                .font(.body.weight(.medium))
+                                .foregroundStyle(.primary)
+                            Text("\(candidate.startDate.formatted(.dateTime.month().day())) – \(candidate.endDate.formatted(.dateTime.month().day())) · \(candidate.destination)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        if candidate.id == store.trip?.id {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(Color.accentColor)
+                        }
+                    }
+                }
+            }
+            Button {
+                showCreateTrip = true
+            } label: {
+                Label("Start another trip", systemImage: "plus")
+            }
+            Button {
+                showJoinTrip = true
+            } label: {
+                Label("Join with invite code", systemImage: "person.badge.key")
+            }
+        } header: {
+            Text("My trips")
+        } footer: {
+            Text("Tap a trip to switch. Every trip keeps its own plans, chat, map, photos, and expenses.")
         }
     }
 

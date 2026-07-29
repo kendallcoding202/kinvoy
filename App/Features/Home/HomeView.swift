@@ -10,7 +10,16 @@ final class HomeViewModel: ObservableObject {
     private var client: SupabaseClient { SupabaseService.shared.client }
     private var pollTask: Task<Void, Never>?
 
+    private var activeTripId: UUID?
+
     func start(trip: Trip, isDemo: Bool) {
+        if activeTripId != trip.id {
+            stop()
+            upcomingEvents = []
+            latestMessages = []
+            forecast = []
+        }
+        activeTripId = trip.id
         guard pollTask == nil else { return }
         if isDemo {
             upcomingEvents = Array(DemoData.events.filter { $0.startsAt > .now.addingTimeInterval(-3600) }.prefix(3))

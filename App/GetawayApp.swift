@@ -23,17 +23,27 @@ struct RootView: View {
         Group {
             if store.isLoading {
                 ProgressView("Loading your trip…")
-            } else if let trip = store.trip, let member = store.currentMember {
+            } else if store.trip != nil, store.currentMember != nil {
                 TripTabView()
-                    .onAppear {
-                        locationService.configure(trip: trip, memberId: member.id, isDemo: store.isDemo)
-                    }
             } else {
                 WelcomeView()
             }
         }
         .task {
             await store.bootstrap()
+        }
+        .onChange(of: store.trip?.id) {
+            // Reconfigure (and stop) location sharing whenever the active trip changes.
+            locationService.setSharing(false)
+            if let trip = store.trip, let member = store.currentMember {
+                locationService.configure(trip: trip, memberId: member.id, isDemo: store.isDemo)
+            }
+        }
+        .onOpenURL { url in
+            store.handleDeepLink(url)
+        }
+        .sheet(item: $store.pendingJoinCode) { pending in
+            JoinTripView(initialCode: pending.code)
         }
     }
 }

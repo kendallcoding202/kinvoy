@@ -17,6 +17,17 @@ targets:
     dependencies:
       - package: Supabase
         product: Supabase
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Kinvoy
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSLocationWhenInUseUsageDescription: "Kinvoy shares your location with your family group only while your trip is active and only when you turn sharing on."
+        ITSAppUsesNonExemptEncryption: false
+        CFBundleURLTypes:
+          - CFBundleURLName: com.kendallsorenson.getaway
+            CFBundleURLSchemes: [kinvoy]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kendallsorenson.getaway
@@ -27,11 +38,5 @@ targets:
         CODE_SIGN_STYLE: Automatic
         SWIFT_VERSION: "5.9"
         TARGETED_DEVICE_FAMILY: "1"
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Getaway shares your location with your family group only while your trip is active and only when you turn sharing on."
-        INFOPLIST_KEY_CFBundleDisplayName: Kinvoy
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

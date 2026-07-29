@@ -4,10 +4,14 @@ struct JoinTripView: View {
     @EnvironmentObject private var store: TripStore
     @Environment(\.dismiss) private var dismiss
 
-    @State private var code = ""
+    @State private var code: String
     @State private var displayName = ""
     @State private var isWorking = false
     @State private var errorMessage: String?
+
+    init(initialCode: String = "") {
+        _code = State(initialValue: initialCode)
+    }
 
     private var canSubmit: Bool {
         code.trimmingCharacters(in: .whitespaces).count >= 6

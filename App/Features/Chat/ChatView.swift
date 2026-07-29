@@ -36,7 +36,16 @@ final class ChatViewModel: ObservableObject {
             .sorted { $0.createdAt < $1.createdAt }
     }
 
+    private var activeTripId: UUID?
+
     func start(trip: Trip, isDemo: Bool) {
+        if activeTripId != trip.id {
+            stop()
+            messages = []
+            polls = []
+            votes = []
+        }
+        activeTripId = trip.id
         guard pollTask == nil else { return }
         if isDemo {
             messages = DemoData.messages
