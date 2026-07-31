@@ -106,13 +106,13 @@ struct TripDetailView: View {
     }
 
     private func inviteSection(trip: Trip) -> some View {
-        Section("Invite family") {
+        Section {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(trip.inviteCode)
                         .font(.system(.title, design: .monospaced).weight(.bold))
                         .kerning(3)
-                    Text("Family members enter this code to join.")
+                    Text("This code adds someone to this trip only.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -123,11 +123,15 @@ struct TripDetailView: View {
                 }
             }
             .padding(.vertical, 4)
+        } header: {
+            Text("Trip invite code")
+        } footer: {
+            Text("Handy for people outside your family — friends, in-laws, whoever's coming along.")
         }
     }
 
     private func inviteMessage(trip: Trip) -> String {
-        "Join our trip \"\(trip.name)\" on Kinvoy! Download the app, tap \"Join with invite code,\" and enter: \(trip.inviteCode)"
+        "Join our trip \"\(trip.name)\" on Kinvoy! Download the app, tap \"Join a trip,\" and enter: \(trip.inviteCode)"
     }
 
     private var sharedSection: some View {

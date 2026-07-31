@@ -18,7 +18,7 @@ struct WelcomeView: View {
                         .foregroundStyle(.orange)
                     Text("Kinvoy")
                         .font(.system(size: 42, weight: .bold, design: .rounded))
-                    Text("Your family's trips, all in one place.\nPlans, chat, locations, photos, and ideas.")
+                    Text("Your family, every day — chat, calendar, and map.\nPlus a workspace for every trip you take.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)

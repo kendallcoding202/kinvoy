@@ -372,23 +372,27 @@ struct FamilyDetailView: View {
     var body: some View {
         List {
             if let family = familyStore.family {
-                Section("Invite to the family") {
+                Section {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(family.inviteCode)
                                 .font(.system(.title, design: .monospaced).weight(.bold))
                                 .kerning(3)
-                            Text("Family members enter this code once — then every trip is one tap away.")
+                            Text("This code adds someone to your family — your everyday chat, calendar, and map.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
-                        ShareLink(item: "Join our family \"\(family.name)\" on Kinvoy! Download the app, tap \"Join with code\" on the Home screen, and enter: \(family.inviteCode)") {
+                        ShareLink(item: "Join our family \"\(family.name)\" on Kinvoy! Download the app, tap \"Join a family with a code,\" and enter: \(family.inviteCode)") {
                             Image(systemName: "square.and.arrow.up")
                                 .font(.title3)
                         }
                     }
                     .padding(.vertical, 4)
+                } header: {
+                    Text("Family invite code")
+                } footer: {
+                    Text("Trips have their own separate invite codes — share a trip's code from inside that trip to add people to it.")
                 }
 
                 Section("Members") {
@@ -422,7 +426,7 @@ struct FamilyDetailView: View {
                         }
                     }
                 } footer: {
-                    Text("Family chat, calendar, and the family map live in the Chat, Plans, and Map tabs — flip the Trip/Family switch at the top.")
+                    Text("Your family's chat, calendar, and map are the Chat, Calendar, and Map tabs — they're here every day. Trips live in the Trips tab and open in their own workspace.")
                 }
 
                 Section {
