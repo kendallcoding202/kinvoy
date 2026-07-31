@@ -51,16 +51,38 @@ final class TripStore: ObservableObject {
         }
     }
 
-    func createTrip(name: String, destination: String, startsOn: Date, endsOn: Date, displayName: String, kind: TripKind = .vacation) async throws {
+    func createTrip(
+        name: String,
+        destination: String,
+        startsOn: Date,
+        endsOn: Date,
+        displayName: String,
+        kind: TripKind = .vacation,
+        familyId: UUID? = nil,
+        isPrivate: Bool = false
+    ) async throws {
         try await SupabaseService.shared.ensureSignedIn()
-        let params: [String: String] = [
-            "p_name": name,
-            "p_destination": destination,
-            "p_starts_on": Trip.dayFormatter.string(from: startsOn),
-            "p_ends_on": Trip.dayFormatter.string(from: endsOn),
-            "p_display_name": displayName,
-            "p_kind": kind.rawValue,
-        ]
+        // Typed payload so is_private arrives as a real boolean, not a string.
+        struct CreateTripParams: Encodable {
+            let p_name: String
+            let p_destination: String
+            let p_starts_on: String
+            let p_ends_on: String
+            let p_display_name: String
+            let p_kind: String
+            let p_family_id: String?
+            let p_is_private: Bool
+        }
+        let params = CreateTripParams(
+            p_name: name,
+            p_destination: destination,
+            p_starts_on: Trip.dayFormatter.string(from: startsOn),
+            p_ends_on: Trip.dayFormatter.string(from: endsOn),
+            p_display_name: displayName,
+            p_kind: kind.rawValue,
+            p_family_id: familyId?.uuidString,
+            p_is_private: isPrivate
+        )
         let bundle: TripBundle = try await client
             .rpc("create_trip", params: params)
             .execute().value

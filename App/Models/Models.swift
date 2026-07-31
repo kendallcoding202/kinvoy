@@ -39,14 +39,19 @@ struct Trip: Codable, Identifiable, Equatable {
     var endsOn: String     // "yyyy-MM-dd"
     let inviteCode: String
     var kind: TripKind?    // optional: rows created before migration 003 decode fine
+    var familyId: UUID?    // set when the trip belongs to a family
+    var isPrivate: Bool?
 
     var kindOrDefault: TripKind { kind ?? .vacation }
+    var isFamilyTrip: Bool { familyId != nil && !(isPrivate ?? false) }
 
     enum CodingKeys: String, CodingKey {
         case id, name, destination, kind
         case startsOn = "starts_on"
         case endsOn = "ends_on"
         case inviteCode = "invite_code"
+        case familyId = "family_id"
+        case isPrivate = "is_private"
     }
 
     var startDate: Date { Self.dayFormatter.date(from: startsOn) ?? .now }

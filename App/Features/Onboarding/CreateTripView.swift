@@ -2,7 +2,9 @@ import SwiftUI
 
 struct CreateTripView: View {
     @EnvironmentObject private var store: TripStore
+    @EnvironmentObject private var familyStore: FamilyStore
     @Environment(\.dismiss) private var dismiss
+    @State private var shareWithFamily = true
 
     @State private var kind: TripKind = .vacation
     @State private var name = ""
@@ -35,6 +37,22 @@ struct CreateTripView: View {
                 Section("Dates") {
                     DatePicker("Starts", selection: $startDate, displayedComponents: .date)
                     DatePicker("Ends", selection: $endDate, in: startDate..., displayedComponents: .date)
+                }
+                if let family = familyStore.family {
+                    Section {
+                        Toggle(isOn: $shareWithFamily) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Share with \(family.name)")
+                                Text(shareWithFamily
+                                    ? "Everyone in the family is added automatically — no code needed."
+                                    : "Private: only people you give the trip code to can see it.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    } header: {
+                        Text("Who's on it")
+                    }
                 }
                 Section("You") {
                     TextField("Your name (what family sees)", text: $displayName)
@@ -78,7 +96,9 @@ struct CreateTripView: View {
                     startsOn: startDate,
                     endsOn: endDate,
                     displayName: displayName.trimmingCharacters(in: .whitespaces),
-                    kind: kind
+                    kind: kind,
+                    familyId: familyStore.family?.id,
+                    isPrivate: familyStore.family != nil && !shareWithFamily
                 )
                 dismiss()
             } catch {

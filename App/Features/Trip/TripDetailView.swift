@@ -126,7 +126,9 @@ struct TripDetailView: View {
         } header: {
             Text("Trip invite code")
         } footer: {
-            Text("Handy for people outside your family — friends, in-laws, whoever's coming along.")
+            Text(trip.isFamilyTrip
+                ? "Your family is already on this trip. Use this code only for people outside the family — friends, in-laws, whoever's coming along."
+                : "This trip is private: only people you give this code to can see it.")
         }
     }
 

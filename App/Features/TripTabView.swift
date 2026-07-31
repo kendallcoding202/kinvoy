@@ -87,7 +87,7 @@ struct TripsListView: View {
                     }
                 } footer: {
                     if !store.myTrips.isEmpty {
-                        Text("Tap a trip to step into its workspace — plans, chat, map, photos, and expenses all live inside.")
+                        Text("Tap a trip to step into its workspace — plans, chat, map, photos, and expenses all live inside. Trips you share with the family include everyone automatically.")
                     }
                 }
                 Section {
@@ -116,13 +116,22 @@ struct TripsListView: View {
         HStack(spacing: 12) {
             Text(trip.kindOrDefault.emoji)
                 .font(.title2)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(trip.name)
                     .font(.body.weight(.medium))
                     .foregroundStyle(.primary)
                 Text("\(trip.startDate.formatted(.dateTime.month().day())) – \(trip.endDate.formatted(.dateTime.month().day())) · \(trip.destination)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if trip.isFamilyTrip {
+                    Label("Whole family", systemImage: "house.fill")
+                        .font(.caption2)
+                        .foregroundStyle(Color.accentColor)
+                } else if trip.isPrivate == true {
+                    Label("Private — invite by code", systemImage: "lock.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
             }
             Spacer()
             if trip.isActiveToday {
