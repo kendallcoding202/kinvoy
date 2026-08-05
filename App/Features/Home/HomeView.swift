@@ -245,7 +245,7 @@ struct HomeView: View {
             Label("Coming up", systemImage: "calendar")
                 .font(.headline)
             if viewModel.upcomingEvents.isEmpty {
-                Text("Nothing on the calendar yet. Add plans in the Plans tab.")
+                Text("Nothing planned for this trip yet. Open the trip and add plans.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             } else {
@@ -277,10 +277,11 @@ struct HomeView: View {
 
     private var chatCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Latest in family chat", systemImage: "bubble.left.and.bubble.right")
+            Label(familyStore.family.map { "Latest in \($0.name)" } ?? "Latest in chat",
+                  systemImage: "bubble.left.and.bubble.right")
                 .font(.headline)
             if familyStore.family == nil {
-                Text("Set up your family to start the standing thread.")
+                Text("Set up your group to start the standing thread.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             } else if viewModel.latestFamilyMessages.isEmpty {

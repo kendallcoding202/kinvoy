@@ -63,15 +63,25 @@ struct TripWorkspaceView: View {
 /// The Trips tab: all your trips, enter one, start or join another.
 struct TripsListView: View {
     @EnvironmentObject private var store: TripStore
+    @EnvironmentObject private var familyStore: FamilyStore
     @State private var showCreate = false
     @State private var showJoin = false
+
+    /// Names the group a shared trip belongs to, so someone in several
+    /// groups can tell "the Sorensons" from "Disneyland Crew" at a glance.
+    private func groupName(for trip: Trip) -> String {
+        guard let id = trip.familyId,
+              let group = familyStore.myFamilies.first(where: { $0.id == id })
+        else { return "Shared with group" }
+        return "Everyone in \(group.name)"
+    }
 
     var body: some View {
         NavigationStack {
             List {
                 Section {
                     if store.myTrips.isEmpty {
-                        Text("No trips yet — start one and share the invite code with your family.")
+                        Text("No trips yet — start one and share the invite code with everyone coming.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -87,7 +97,7 @@ struct TripsListView: View {
                     }
                 } footer: {
                     if !store.myTrips.isEmpty {
-                        Text("Tap a trip to step into its workspace — plans, chat, map, photos, and expenses all live inside. Trips you share with the family include everyone automatically.")
+                        Text("Tap a trip to step into its workspace — plans, chat, map, photos, and expenses all live inside. Trips shared with a group include everyone in it automatically.")
                     }
                 }
                 Section {
@@ -124,7 +134,7 @@ struct TripsListView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 if trip.isFamilyTrip {
-                    Label("Whole family", systemImage: "house.fill")
+                    Label(groupName(for: trip), systemImage: "house.fill")
                         .font(.caption2)
                         .foregroundStyle(Color.accentColor)
                 } else if trip.isPrivate == true {
@@ -199,8 +209,13 @@ struct FamilyMapTab: View {
                 if familyStore.family != nil {
                     ZStack(alignment: .bottom) {
                         map
-                        sharePanel
-                            .padding()
+                        VStack(spacing: 10) {
+                            if viewModel.locations.isEmpty {
+                                emptyHint
+                            }
+                            sharePanel
+                        }
+                        .padding()
                     }
                 } else {
                     FamilySetupPrompt(feature: "map")
@@ -244,6 +259,21 @@ struct FamilyMapTab: View {
         }
     }
 
+    private var emptyHint: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "mappin.slash")
+                .foregroundStyle(.secondary)
+            Text(locationService.isFamilySharing
+                ? "You're sharing. Pins appear as others turn sharing on."
+                : "Nobody's sharing yet — flip the switch below to start.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(12)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+    }
+
     private var sharePanel: some View {
         VStack(spacing: 8) {
             Toggle(isOn: Binding(
@@ -251,9 +281,9 @@ struct FamilyMapTab: View {
                 set: { locationService.setFamilySharing($0) }
             )) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Always share with my family")
+                    Text(familyStore.family.map { "Always share with \($0.name)" } ?? "Always share my location")
                         .font(.subheadline.weight(.semibold))
-                    Text("Stays on until you turn it off. Only your family can see you.")
+                    Text("Stays on until you turn it off. Only this group can see you.")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }

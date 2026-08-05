@@ -268,7 +268,7 @@ struct ChatView: View {
                     .font(.title3)
                     .foregroundStyle(Color.accentColor)
             }
-            TextField("Message the family…", text: $viewModel.draft, axis: .vertical)
+            TextField("Message everyone on this trip…", text: $viewModel.draft, axis: .vertical)
                 .lineLimit(1...4)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 9)

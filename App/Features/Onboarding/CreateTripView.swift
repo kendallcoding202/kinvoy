@@ -44,7 +44,7 @@ struct CreateTripView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Share with \(family.name)")
                                 Text(shareWithFamily
-                                    ? "Everyone in the family is added automatically — no code needed."
+                                    ? "Everyone in \(family.name) is added automatically — no code needed."
                                     : "Private: only people you give the trip code to can see it.")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
@@ -55,7 +55,7 @@ struct CreateTripView: View {
                     }
                 }
                 Section("You") {
-                    TextField("Your name (what family sees)", text: $displayName)
+                    TextField("Your name (what everyone sees)", text: $displayName)
                 }
                 if let errorMessage {
                     Section {

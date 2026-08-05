@@ -88,6 +88,11 @@ struct FamilyChatView: View {
         }
     }
 
+    /// The group's own name, so friend groups don't get called "the family".
+    private var groupName: String {
+        familyStore.family?.name ?? "your group"
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
@@ -95,9 +100,9 @@ struct FamilyChatView: View {
                     LazyVStack(spacing: 10) {
                         if viewModel.messages.isEmpty {
                             ContentUnavailableView(
-                                "Family chat",
-                                systemImage: "house.and.flag",
-                                description: Text("One standing thread for the whole family — always here, trip or no trip.")
+                                familyStore.family.map { "\($0.name) chat" } ?? "Group chat",
+                                systemImage: "bubble.left.and.bubble.right",
+                                description: Text("One standing thread for everyone in \(groupName) — always here, trip or no trip.")
                             )
                             .padding(.top, 60)
                         }
@@ -130,7 +135,7 @@ struct FamilyChatView: View {
             }
 
             HStack(spacing: 10) {
-                TextField("Message the family…", text: $viewModel.draft, axis: .vertical)
+                TextField("Message \(groupName)…", text: $viewModel.draft, axis: .vertical)
                     .lineLimit(1...4)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
@@ -272,11 +277,14 @@ struct FamilyCalendarView: View {
     var body: some View {
         Group {
             if viewModel.events.isEmpty {
-                ContentUnavailableView(
-                    "Family calendar",
-                    systemImage: "calendar.badge.clock",
-                    description: Text("Soccer games, school events, birthdays — the shared calendar that's always on, trip or no trip.")
-                )
+                ContentUnavailableView {
+                    Label("Nothing scheduled yet", systemImage: "calendar.badge.clock")
+                } description: {
+                    Text("Soccer games, birthdays, dinners out — anything the group should know about. Always on, trip or no trip.")
+                } actions: {
+                    Button("Add the first event") { showAdd = true }
+                        .buttonStyle(.borderedProminent)
+                }
             } else {
                 List {
                     ForEach(viewModel.events) { event in
@@ -411,7 +419,7 @@ struct FamilyDetailView: View {
                             Text(family.inviteCode)
                                 .font(.system(.title, design: .monospaced).weight(.bold))
                                 .kerning(3)
-                            Text("This code adds someone to your family — your everyday chat, calendar, and map.")
+                            Text("This code adds someone to \(family.name) — the everyday chat, calendar, and map.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -453,7 +461,7 @@ struct FamilyDetailView: View {
                     )) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Always share my location")
-                            Text("Only your family sees it. Off anytime.")
+                            Text("Only \(family.name) sees it. Off anytime.")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
@@ -518,7 +526,7 @@ struct FamilySetupView: View {
                     }
                 }
                 Section("You") {
-                    TextField("Your name (what family sees)", text: $displayName)
+                    TextField("Your name (what the group sees)", text: $displayName)
                 }
                 if let errorMessage {
                     Section {

@@ -125,7 +125,7 @@ struct ExpensesView: View {
             }
         } header: {
             Text(store.members.count <= 1
-                ? "Just you so far — invite the family to split costs"
+                ? "Just you so far — invite others to split costs"
                 : "Split evenly \(store.members.count) ways")
         }
     }

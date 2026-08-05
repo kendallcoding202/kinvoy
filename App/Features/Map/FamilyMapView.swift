@@ -121,7 +121,7 @@ struct TripMapView: View {
 
     private var shareCaption: String {
         if locationService.tripIsActive {
-            return "Visible to your family only, and only until the trip ends."
+            return "Visible to everyone on this trip, and only until it ends."
         } else if let trip = store.trip, Calendar.current.startOfDay(for: .now) < Calendar.current.startOfDay(for: trip.startDate) {
             return "Sharing unlocks when the trip starts on \(trip.startDate.formatted(.dateTime.month().day()))."
         } else {

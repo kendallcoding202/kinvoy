@@ -28,7 +28,7 @@ struct JoinTripView: View {
                         .font(.system(.title2, design: .monospaced))
                 }
                 Section("You") {
-                    TextField("Your name (what family sees)", text: $displayName)
+                    TextField("Your name (what everyone sees)", text: $displayName)
                 }
                 if let errorMessage {
                     Section {
