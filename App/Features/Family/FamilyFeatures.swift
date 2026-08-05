@@ -414,8 +414,12 @@ struct FamilyDetailView: View {
     @EnvironmentObject private var locationService: LocationService
     @EnvironmentObject private var moderation: ModerationService
     @EnvironmentObject private var store: TripStore
+    @EnvironmentObject private var subscriptions: SubscriptionService
     @State private var showDeleteConfirm = false
     @State private var isDeleting = false
+    @State private var showPaywall = false
+    @State private var showRename = false
+    @State private var renameDraft = ""
 
     var body: some View {
         List {
@@ -441,6 +445,21 @@ struct FamilyDetailView: View {
                     Text("Family invite code")
                 } footer: {
                     Text("Trips have their own separate invite codes — share a trip's code from inside that trip to add people to it.")
+                }
+
+                Section {
+                    Button {
+                        renameDraft = family.name
+                        showRename = true
+                    } label: {
+                        LabeledContent {
+                            Text("Rename").font(.subheadline)
+                        } label: {
+                            Text(family.name).foregroundStyle(.primary)
+                        }
+                    }
+                } header: {
+                    Text("Group name")
                 }
 
                 Section("Members") {
@@ -484,6 +503,33 @@ struct FamilyDetailView: View {
                 }
 
                 Section {
+                    if subscriptions.hasPremium(familyId: family.id) {
+                        LabeledContent {
+                            Text("Active").foregroundStyle(.green)
+                        } label: {
+                            Label("Kinvoy Premium", systemImage: "sparkles")
+                        }
+                        Text("Everyone in \(family.name) has Premium. Manage or cancel in Settings › Apple Account › Subscriptions.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Button {
+                            showPaywall = true
+                        } label: {
+                            Label("Upgrade to Kinvoy Premium", systemImage: "sparkles")
+                        }
+                        Button("Restore purchases") {
+                            Task { await subscriptions.restore() }
+                        }
+                        .font(.subheadline)
+                    }
+                } header: {
+                    Text("Premium")
+                } footer: {
+                    Text("One subscription covers everyone in the group.")
+                }
+
+                Section {
                     Link("Privacy Policy", destination: URL(string: "https://kendallcoding202.github.io/kinvoy/privacy.html")!)
                     Link("Terms of Use", destination: URL(string: "https://kendallcoding202.github.io/kinvoy/terms.html")!)
                     Link("Contact support", destination: URL(string: "mailto:kendall12236@gmail.com")!)
@@ -501,6 +547,18 @@ struct FamilyDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await familyStore.refreshMembers()
+            await subscriptions.refreshEntitlements()
+        }
+        .sheet(isPresented: $showPaywall) { PaywallView() }
+        .alert("Rename group", isPresented: $showRename) {
+            TextField("Group name", text: $renameDraft)
+            Button("Save") {
+                let name = renameDraft
+                Task { try? await familyStore.rename(to: name) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Everyone in the group will see the new name.")
         }
         .alert("Delete your account?", isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) {}

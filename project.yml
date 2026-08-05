@@ -8,6 +8,18 @@ packages:
   Supabase:
     url: https://github.com/supabase/supabase-swift
     from: 2.20.0
+schemes:
+  Getaway:
+    build:
+      targets:
+        Getaway: all
+    run:
+      # Local subscription testing without App Store Connect products.
+      storeKitConfiguration: App/Resources/Kinvoy.storekit
+    test:
+      targets: []
+    archive:
+      config: Release
 targets:
   Getaway:
     type: application
@@ -38,7 +50,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.kendallsorenson.getaway
         PRODUCT_NAME: Getaway
         MARKETING_VERSION: "1.0"
-        CURRENT_PROJECT_VERSION: "2"
+        CURRENT_PROJECT_VERSION: "3"
         DEVELOPMENT_TEAM: 4985QRD6MB
         CODE_SIGN_STYLE: Automatic
         SWIFT_VERSION: "5.9"

@@ -72,11 +72,12 @@ struct PaywallView: View {
 
     private var benefits: some View {
         VStack(alignment: .leading, spacing: 14) {
-            benefit("suitcase.fill", "Unlimited trips", "Plan next summer while this one's still going.")
-            benefit("house.fill", "Unlimited groups", "Your family, the in-laws, and every friend group.")
-            benefit("sparkles", "Unlimited AI ideas", "Ask for suggestions as often as you like.")
-            benefit("photo.on.rectangle.angled", "Full photo albums", "Everyone's trip photos in one place.")
-            benefit("dollarsign.circle.fill", "Expenses & splitting", "Know who owes who before you get home.")
+            benefit("suitcase.fill", "Unlimited trips",
+                    "Free covers one at a time. Plan next summer while this one's still going.")
+            benefit("house.fill", "Unlimited groups",
+                    "Free covers one. Add the in-laws, a friend group, the whole extended family.")
+            benefit("checkmark.seal.fill", "Everything in every trip",
+                    "Plans, chat, map, photos, expenses, packing lists, and AI ideas — in all of them.")
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -101,7 +102,29 @@ struct PaywallView: View {
                 planRow(product)
             }
             if subscriptions.products.isEmpty {
-                ProgressView().padding(.vertical, 20)
+                if subscriptions.didLoadProducts {
+                    // Never leave a spinner running forever if the store is
+                    // unreachable or the products aren't live yet.
+                    VStack(spacing: 8) {
+                        Image(systemName: "wifi.exclamationmark")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                        Text("Plans couldn't load right now.")
+                            .font(.subheadline.weight(.medium))
+                        Text("Check your connection and try again.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Button("Retry") {
+                            Task { await subscriptions.loadProducts() }
+                        }
+                        .buttonStyle(.bordered)
+                        .padding(.top, 4)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                } else {
+                    ProgressView().padding(.vertical, 20)
+                }
             }
         }
     }

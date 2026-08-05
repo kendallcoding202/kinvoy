@@ -94,6 +94,22 @@ final class FamilyStore: ObservableObject {
         }
     }
 
+    func rename(to newName: String) async throws {
+        guard let family else { return }
+        let trimmed = newName.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        if isDemo {
+            self.family?.name = trimmed
+            return
+        }
+        _ = try await client.from("families")
+            .update(["name": trimmed])
+            .eq("id", value: family.id.uuidString)
+            .execute()
+        self.family?.name = trimmed
+        await refreshMyFamilies()
+    }
+
     func switchFamily(to newFamily: Family) async {
         guard newFamily.id != family?.id, !isDemo else { return }
         do {

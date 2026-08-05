@@ -8,14 +8,17 @@ import SwiftUI
 @MainActor
 final class SubscriptionService: ObservableObject {
     /// Master switch. While false every feature is unlocked for everyone and
-    /// no paywall is shown — the plumbing is live but dormant so early users
-    /// aren't charged before Premium has proven itself.
-    static let paywallEnabled = false
+    /// no paywall is shown. Set true once the subscription products exist in
+    /// App Store Connect — otherwise the paywall renders with no plans.
+    static let paywallEnabled = true
 
     static let monthlyID = "com.kendallsorenson.getaway.premium.monthly"
     static let yearlyID = "com.kendallsorenson.getaway.premium.yearly"
 
     @Published private(set) var products: [Product] = []
+    /// Nil until a load has been attempted, so the paywall can tell
+    /// "still loading" from "the store gave us nothing".
+    @Published private(set) var didLoadProducts = false
     @Published private(set) var premiumFamilyIds: Set<UUID> = []
     @Published var isPurchasing = false
     @Published var lastError: String?
@@ -59,6 +62,7 @@ final class SubscriptionService: ObservableObject {
     // MARK: - Store
 
     func loadProducts() async {
+        defer { didLoadProducts = true }
         do {
             products = try await Product.products(for: [Self.monthlyID, Self.yearlyID])
                 .sorted { $0.price < $1.price }
