@@ -42,6 +42,15 @@ struct RootView: View {
         }
         .animation(.easeInOut(duration: 0.35), value: splashFinished)
         .task {
+            // App Store screenshots run on demo data so marketing shots never
+            // depend on (or pollute) real accounts: launch with -screenshotMode.
+            if ProcessInfo.processInfo.arguments.contains("-screenshotMode") {
+                acceptedTermsVersion = TermsGate.currentVersion
+                store.enterDemo()
+                familyStore.enterDemo()
+                splashFinished = true
+                return
+            }
             // Hold the splash briefly so a fast launch reads as intentional
             // rather than a flash of orange.
             async let minimumSplash: Void? = try? await Task.sleep(for: .milliseconds(1300))

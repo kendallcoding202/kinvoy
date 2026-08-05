@@ -144,5 +144,6 @@ final class FamilyStore: ObservableObject {
         family = DemoData.family
         members = DemoData.familyMembers
         currentMember = DemoData.familyMembers[0]
+        myFamilies = [DemoData.family]
     }
 }

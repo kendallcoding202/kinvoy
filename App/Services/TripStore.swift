@@ -205,8 +205,10 @@ final class TripStore: ObservableObject {
 
     func enterDemo() {
         isDemo = true
+        isLoading = false
         trip = DemoData.trip
         members = DemoData.members
         currentMember = DemoData.members[0]
+        myTrips = [DemoData.trip]
     }
 }
