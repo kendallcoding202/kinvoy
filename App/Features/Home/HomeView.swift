@@ -81,22 +81,50 @@ struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showCreateFamily = false
     @State private var showJoinFamily = false
+    @Environment(\.horizontalSizeClass) private var sizeClass
+
+    private var isWide: Bool { sizeClass == .regular }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    familyCard
-                    if let trip = store.trip {
-                        tripCard(trip: trip)
-                        if !viewModel.forecast.isEmpty {
-                            weatherCard
+                // iPad and Mac get two balanced columns; phones stay a single
+                // stack. Without this the cards stretch and leave dead space.
+                if isWide {
+                    HStack(alignment: .top, spacing: 18) {
+                        VStack(alignment: .leading, spacing: 18) {
+                            familyCard
+                            if let trip = store.trip {
+                                tripCard(trip: trip)
+                                if !viewModel.forecast.isEmpty {
+                                    weatherCard
+                                }
+                            }
                         }
-                        plansCard
+                        VStack(alignment: .leading, spacing: 18) {
+                            if store.trip != nil {
+                                plansCard
+                            }
+                            chatCard
+                        }
                     }
-                    chatCard
+                    .frame(maxWidth: 1000)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                } else {
+                    VStack(alignment: .leading, spacing: 18) {
+                        familyCard
+                        if let trip = store.trip {
+                            tripCard(trip: trip)
+                            if !viewModel.forecast.isEmpty {
+                                weatherCard
+                            }
+                            plansCard
+                        }
+                        chatCard
+                    }
+                    .padding()
                 }
-                .padding()
             }
             .background(Color(.systemGroupedBackground))
             .navigationBarTitleDisplayMode(.inline)
