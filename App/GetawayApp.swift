@@ -24,21 +24,29 @@ struct RootView: View {
     @EnvironmentObject private var familyStore: FamilyStore
     @EnvironmentObject private var locationService: LocationService
     @EnvironmentObject private var moderation: ModerationService
+    @State private var splashFinished = false
 
     var body: some View {
         Group {
-            if store.isLoading {
-                ProgressView("Loading…")
+            if store.isLoading || !splashFinished {
+                LaunchView()
+                    .transition(.opacity)
             } else if familyStore.family != nil || (store.trip != nil && store.currentMember != nil) {
                 MainTabView()
             } else {
                 WelcomeView()
             }
         }
+        .animation(.easeInOut(duration: 0.35), value: splashFinished)
         .task {
+            // Hold the splash briefly so a fast launch reads as intentional
+            // rather than a flash of orange.
+            async let minimumSplash: Void? = try? await Task.sleep(for: .milliseconds(1300))
             await store.bootstrap()
             await familyStore.bootstrap()
             await moderation.refreshBlocks()
+            _ = await minimumSplash
+            splashFinished = true
             if store.isDemo { familyStore.enterDemo() }
             if let family = familyStore.family, let member = familyStore.currentMember, !familyStore.isDemo {
                 locationService.configureFamily(familyId: family.id, familyMemberId: member.id)
