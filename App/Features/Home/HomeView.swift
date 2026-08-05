@@ -99,7 +99,8 @@ struct HomeView: View {
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Home")
+            .navigationBarTitleDisplayMode(.inline)
+            .groupSwitcherToolbar()
             .sheet(isPresented: $showCreateFamily) { FamilySetupView(mode: .create) }
             .sheet(isPresented: $showJoinFamily) { FamilySetupView(mode: .join) }
             .onAppear {

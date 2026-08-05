@@ -163,8 +163,8 @@ struct FamilyChatTab: View {
                     FamilySetupPrompt(feature: "chat")
                 }
             }
-            .navigationTitle(familyStore.family?.name ?? "Family chat")
             .navigationBarTitleDisplayMode(.inline)
+            .groupSwitcherToolbar()
         }
     }
 }
@@ -181,7 +181,8 @@ struct FamilyCalendarTab: View {
                     FamilySetupPrompt(feature: "calendar")
                 }
             }
-            .navigationTitle("Calendar")
+            .navigationBarTitleDisplayMode(.inline)
+            .groupSwitcherToolbar()
         }
     }
 }
@@ -205,9 +206,15 @@ struct FamilyMapTab: View {
                     FamilySetupPrompt(feature: "map")
                 }
             }
-            .navigationTitle("Family Map")
             .navigationBarTitleDisplayMode(.inline)
+            .groupSwitcherToolbar()
             .onAppear {
+                if let family = familyStore.family {
+                    viewModel.start(family: family, isDemo: familyStore.isDemo)
+                }
+            }
+            .onChange(of: familyStore.family?.id) {
+                viewModel.stop()
                 if let family = familyStore.family {
                     viewModel.start(family: family, isDemo: familyStore.isDemo)
                 }

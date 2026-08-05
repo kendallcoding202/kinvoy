@@ -12,7 +12,14 @@ final class FamilyChatViewModel: ObservableObject {
     private var client: SupabaseClient { SupabaseService.shared.client }
     private var pollTask: Task<Void, Never>?
 
+    private var activeFamilyId: UUID?
+
     func start(family: Family, isDemo: Bool) {
+        if activeFamilyId != family.id {
+            stop()
+            messages = []
+        }
+        activeFamilyId = family.id
         guard pollTask == nil else { return }
         if isDemo {
             messages = DemoData.familyMessages
@@ -147,6 +154,11 @@ struct FamilyChatView: View {
             ReportSheet(kind: target.kind, contentId: target.contentId, authorMemberId: target.authorMemberId, scope: .family)
         }
         .onAppear {
+            if let family = familyStore.family {
+                viewModel.start(family: family, isDemo: familyStore.isDemo)
+            }
+        }
+        .onChange(of: familyStore.family?.id) {
             if let family = familyStore.family {
                 viewModel.start(family: family, isDemo: familyStore.isDemo)
             }
@@ -302,7 +314,8 @@ struct FamilyCalendarView: View {
                 }
             }
         }
-        .task {
+        .task(id: familyStore.family?.id) {
+            viewModel.events = []
             if let family = familyStore.family {
                 await viewModel.load(familyId: family.id, isDemo: familyStore.isDemo)
             }

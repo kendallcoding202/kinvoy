@@ -9,6 +9,9 @@ final class FamilyStore: ObservableObject {
     @Published var family: Family?
     @Published var members: [FamilyMember] = []
     @Published var currentMember: FamilyMember?
+    /// Every group this user belongs to — their own family, in-laws, a
+    /// friend group. One is active at a time.
+    @Published var myFamilies: [Family] = []
     @Published var isDemo = false
 
     private let familyIdKey = "currentFamilyId"
@@ -23,14 +26,13 @@ final class FamilyStore: ObservableObject {
         guard AppConfig.isConfigured else { return }
         do {
             // Restore by remembered id, else rejoin the family this user belongs to.
+            await refreshMyFamilies()
             if let idString = UserDefaults.standard.string(forKey: familyIdKey),
-               let id = UUID(uuidString: idString) {
+               let id = UUID(uuidString: idString),
+               myFamilies.contains(where: { $0.id == id }) {
                 try await loadFamily(id: id)
-            } else {
-                let families: [Family] = try await client.from("families").select().execute().value
-                if let first = families.first {
-                    try await loadFamily(id: first.id)
-                }
+            } else if let first = myFamilies.first {
+                try await loadFamily(id: first.id)
             }
         } catch {
             print("Family bootstrap failed: \(error)")
@@ -61,7 +63,10 @@ final class FamilyStore: ObservableObject {
         family = bundle.family
         currentMember = bundle.member
         UserDefaults.standard.set(bundle.family.id.uuidString, forKey: familyIdKey)
-        Task { await refreshMembers() }
+        Task {
+            await refreshMembers()
+            await refreshMyFamilies()
+        }
     }
 
     func loadFamily(id: UUID) async throws {
@@ -74,6 +79,28 @@ final class FamilyStore: ObservableObject {
         UserDefaults.standard.set(family.id.uuidString, forKey: familyIdKey)
         await refreshMembers()
         currentMember = members.first { $0.userId == SupabaseService.shared.userId }
+    }
+
+    func refreshMyFamilies() async {
+        guard !isDemo else {
+            myFamilies = [DemoData.family]
+            return
+        }
+        do {
+            let families: [Family] = try await client.from("families").select().execute().value
+            myFamilies = families.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        } catch {
+            print("Group refresh failed: \(error)")
+        }
+    }
+
+    func switchFamily(to newFamily: Family) async {
+        guard newFamily.id != family?.id, !isDemo else { return }
+        do {
+            try await loadFamily(id: newFamily.id)
+        } catch {
+            print("Group switch failed: \(error)")
+        }
     }
 
     func refreshMembers() async {
@@ -96,9 +123,16 @@ final class FamilyStore: ObservableObject {
                 .execute()
         }
         UserDefaults.standard.removeObject(forKey: familyIdKey)
+        let leftId = family?.id
         family = nil
         members = []
         currentMember = nil
+        // Fall back to another group if this user is in more than one.
+        await refreshMyFamilies()
+        myFamilies.removeAll { $0.id == leftId }
+        if let next = myFamilies.first {
+            try? await loadFamily(id: next.id)
+        }
     }
 
     func member(for id: UUID) -> FamilyMember? {

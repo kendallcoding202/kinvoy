@@ -1,52 +1,61 @@
 import SwiftUI
 
-/// Shown while the app restores your family and trips on cold launch.
+/// Full-bleed launch screen: the Kinvoy sunset fills the entire display,
+/// with the wordmark and loading line over it.
 struct LaunchView: View {
-    @State private var glow = false
+    @State private var appeared = false
 
     var body: some View {
         ZStack {
+            // Gradient underneath guarantees no letterboxing on any size.
             LinearGradient(
                 colors: [
-                    Color(red: 0.99, green: 0.72, blue: 0.35),
-                    Color(red: 0.98, green: 0.45, blue: 0.25),
-                    Color(red: 0.90, green: 0.30, blue: 0.32),
+                    Color(red: 0.99, green: 0.76, blue: 0.40),
+                    Color(red: 0.95, green: 0.38, blue: 0.28),
+                    Color(red: 0.07, green: 0.20, blue: 0.36),
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .ignoresSafeArea()
 
-            VStack(spacing: 22) {
-                Spacer()
+            Image("LaunchMark")
+                .resizable()
+                .scaledToFill()
+                .scaleEffect(appeared ? 1.0 : 1.06)
+                .animation(.easeOut(duration: 2.4), value: appeared)
 
-                Image("LaunchMark")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 168, height: 168)
-                    .clipShape(RoundedRectangle(cornerRadius: 38, style: .continuous))
-                    .shadow(color: .black.opacity(0.22), radius: 18, y: 8)
-                    .scaleEffect(glow ? 1.03 : 0.97)
-                    .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: glow)
+            // Darkens the top band so the type stays legible.
+            LinearGradient(
+                colors: [.black.opacity(0.42), .black.opacity(0.12), .clear],
+                startPoint: .top,
+                endPoint: .center
+            )
 
-                VStack(spacing: 8) {
-                    Text("Kinvoy")
-                        .font(.system(size: 44, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                    Text("Kinvoy is loading,\nyour next adventure awaits")
-                        .font(.callout)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(.white.opacity(0.9))
-                }
+            // Everything sits in the open sky at the top, where there's
+            // nothing behind it to fight with.
+            VStack(spacing: 14) {
+                Text("Kinvoy")
+                    .font(.system(size: 58, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.35), radius: 12, y: 3)
 
-                Spacer()
+                Text("Kinvoy is loading,\nyour next adventure awaits")
+                    .font(.headline.weight(.medium))
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.4), radius: 8, y: 2)
 
                 ProgressView()
                     .tint(.white)
-                    .padding(.bottom, 60)
+                    .padding(.top, 6)
+
+                Spacer()
             }
-            .padding()
+            .padding(.top, 90)
+            .opacity(appeared ? 1 : 0)
+            .animation(.easeIn(duration: 0.5), value: appeared)
         }
-        .onAppear { glow = true }
+        .ignoresSafeArea()
+        .onAppear { appeared = true }
     }
 }
