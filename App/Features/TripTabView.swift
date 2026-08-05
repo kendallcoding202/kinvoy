@@ -66,6 +66,9 @@ struct TripsListView: View {
     @EnvironmentObject private var familyStore: FamilyStore
     @State private var showCreate = false
     @State private var showJoin = false
+    @Environment(\.horizontalSizeClass) private var sizeClass
+
+    private var isWide: Bool { sizeClass == .regular }
 
     /// Names the group a shared trip belongs to, so someone in several
     /// groups can tell "the Sorensons" from "Disneyland Crew" at a glance.
@@ -113,7 +116,11 @@ struct TripsListView: View {
                     }
                 }
             }
+            .readableColumn(maxWidth: 820)
             .navigationTitle("Trips")
+            // Inline keeps the title centered over the readable column
+            // instead of stranding it at the far edge on iPad.
+            .navigationBarTitleDisplayMode(isWide ? .inline : .large)
             .sheet(isPresented: $showCreate) { CreateTripView() }
             .sheet(isPresented: $showJoin) { JoinTripView() }
             .task {

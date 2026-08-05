@@ -209,6 +209,7 @@ struct ChatView: View {
             }
             .onTapGesture { inputFocused = false }
         }
+        .readableColumn()
     }
 
     /// Hides anything authored by someone this user has blocked.
@@ -285,6 +286,7 @@ struct ChatView: View {
             }
             .disabled(viewModel.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
+        .readableColumn()
         .padding(.horizontal)
         .padding(.vertical, 8)
         .background(.bar)

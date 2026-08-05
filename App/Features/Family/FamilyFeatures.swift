@@ -133,6 +133,7 @@ struct FamilyChatView: View {
                 }
                 .onTapGesture { inputFocused = false }
             }
+            .readableColumn()
 
             HStack(spacing: 10) {
                 TextField("Message \(groupName)…", text: $viewModel.draft, axis: .vertical)
@@ -151,6 +152,7 @@ struct FamilyChatView: View {
                 }
                 .disabled(viewModel.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+            .readableColumn()
             .padding(.horizontal)
             .padding(.vertical, 8)
             .background(.bar)
@@ -306,6 +308,7 @@ struct FamilyCalendarView: View {
                 .listStyle(.insetGrouped)
             }
         }
+        .readableColumn(maxWidth: 820)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
