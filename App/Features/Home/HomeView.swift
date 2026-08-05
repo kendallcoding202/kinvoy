@@ -116,22 +116,30 @@ struct HomeView: View {
 
     @ViewBuilder
     private var familyCard: some View {
-        if let family = familyStore.family {
+        if familyStore.family != nil {
+            // The group is already named in the nav-bar chip, so this card
+            // shows who's in it and links to managing them.
             NavigationLink {
                 FamilyDetailView()
             } label: {
                 HStack(spacing: 12) {
-                    Image(systemName: "house.fill")
-                        .font(.title3)
-                        .foregroundStyle(.white)
-                        .frame(width: 42, height: 42)
-                        .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 12))
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(family.name)
-                            .font(.headline)
-                            .foregroundStyle(.primary)
+                    HStack(spacing: -8) {
+                        ForEach(familyStore.members.prefix(5)) { member in
+                            Text(String(member.displayName.prefix(1)).uppercased())
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 34, height: 34)
+                                .background(Color.accentColor, in: Circle())
+                                .overlay(Circle().strokeBorder(Color(.secondarySystemGroupedBackground), lineWidth: 2))
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: 1) {
                         Text(memberSummary)
-                            .font(.caption)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        Text("Invite people · manage group")
+                            .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
@@ -167,8 +175,8 @@ struct HomeView: View {
 
     private var memberSummary: String {
         let names = familyStore.members.map(\.displayName)
-        if names.isEmpty { return "Just you so far — invite everyone" }
-        return names.count <= 4 ? names.joined(separator: ", ") : "\(names.count) members"
+        if names.count <= 1 { return "Just you so far — invite everyone" }
+        return names.count <= 4 ? names.joined(separator: ", ") : "\(names.count) people"
     }
 
     private func tripCard(trip: Trip) -> some View {
