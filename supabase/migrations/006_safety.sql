@@ -5,9 +5,11 @@
 
 -- ---------------------------------------------------------------- reports
 
+-- reporter_id is nullable with ON DELETE SET NULL: reports are moderation
+-- history and outlive the reporter's account, anonymized.
 create table public.reports (
   id           uuid primary key default gen_random_uuid(),
-  reporter_id  uuid not null references auth.users (id),
+  reporter_id  uuid references auth.users (id) on delete set null,
   content_kind text not null check (content_kind in ('trip_message', 'family_message', 'poll', 'photo', 'event', 'member')),
   content_id   uuid not null,
   reason       text not null check (char_length(reason) <= 500),
