@@ -25,12 +25,15 @@ struct RootView: View {
     @EnvironmentObject private var locationService: LocationService
     @EnvironmentObject private var moderation: ModerationService
     @State private var splashFinished = false
+    @AppStorage("acceptedTermsVersion") private var acceptedTermsVersion = 0
 
     var body: some View {
         Group {
             if store.isLoading || !splashFinished {
                 LaunchView()
                     .transition(.opacity)
+            } else if acceptedTermsVersion < TermsGate.currentVersion {
+                TermsGate()
             } else if familyStore.family != nil || (store.trip != nil && store.currentMember != nil) {
                 MainTabView()
             } else {

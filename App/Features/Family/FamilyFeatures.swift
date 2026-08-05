@@ -409,6 +409,10 @@ struct AddFamilyEventView: View {
 struct FamilyDetailView: View {
     @EnvironmentObject private var familyStore: FamilyStore
     @EnvironmentObject private var locationService: LocationService
+    @EnvironmentObject private var moderation: ModerationService
+    @EnvironmentObject private var store: TripStore
+    @State private var showDeleteConfirm = false
+    @State private var isDeleting = false
 
     var body: some View {
         List {
@@ -471,16 +475,50 @@ struct FamilyDetailView: View {
                 }
 
                 Section {
-                    Button("Leave family", role: .destructive) {
+                    Button("Leave \(family.name)", role: .destructive) {
                         Task { await familyStore.leaveFamily() }
                     }
                 }
+
+                Section {
+                    Link("Privacy Policy", destination: URL(string: "https://kendallcoding202.github.io/kinvoy/privacy.html")!)
+                    Link("Terms of Use", destination: URL(string: "https://kendallcoding202.github.io/kinvoy/terms.html")!)
+                    Link("Contact support", destination: URL(string: "mailto:kendall12236@gmail.com")!)
+                    Button("Delete my account", role: .destructive) {
+                        showDeleteConfirm = true
+                    }
+                } header: {
+                    Text("Account")
+                } footer: {
+                    Text("Deleting your account permanently removes you from every group and trip, along with everything you've posted. This can't be undone.")
+                }
             }
         }
-        .navigationTitle(familyStore.family?.name ?? "Family")
+        .navigationTitle(familyStore.family?.name ?? "Group")
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await familyStore.refreshMembers()
+        }
+        .alert("Delete your account?", isPresented: $showDeleteConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete permanently", role: .destructive) {
+                isDeleting = true
+                Task {
+                    try? await moderation.deleteAccount()
+                    await familyStore.leaveFamily()
+                    await store.leaveTrip()
+                    isDeleting = false
+                }
+            }
+        } message: {
+            Text("This removes you from every group and trip and deletes everything you've posted. It can't be undone.")
+        }
+        .overlay {
+            if isDeleting {
+                ProgressView("Deleting…")
+                    .padding(24)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+            }
         }
     }
 }
