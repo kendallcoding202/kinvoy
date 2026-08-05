@@ -5,6 +5,7 @@ struct GetawayApp: App {
     @StateObject private var store = TripStore()
     @StateObject private var familyStore = FamilyStore()
     @StateObject private var locationService = LocationService()
+    @StateObject private var moderation = ModerationService()
 
     var body: some Scene {
         WindowGroup {
@@ -12,6 +13,7 @@ struct GetawayApp: App {
                 .environmentObject(store)
                 .environmentObject(familyStore)
                 .environmentObject(locationService)
+                .environmentObject(moderation)
                 .tint(Color(red: 0.98, green: 0.45, blue: 0.25))
         }
     }
@@ -21,6 +23,7 @@ struct RootView: View {
     @EnvironmentObject private var store: TripStore
     @EnvironmentObject private var familyStore: FamilyStore
     @EnvironmentObject private var locationService: LocationService
+    @EnvironmentObject private var moderation: ModerationService
 
     var body: some View {
         Group {
@@ -35,6 +38,7 @@ struct RootView: View {
         .task {
             await store.bootstrap()
             await familyStore.bootstrap()
+            await moderation.refreshBlocks()
             if store.isDemo { familyStore.enterDemo() }
             if let family = familyStore.family, let member = familyStore.currentMember, !familyStore.isDemo {
                 locationService.configureFamily(familyId: family.id, familyMemberId: member.id)

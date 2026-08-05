@@ -70,8 +70,16 @@ final class FamilyChatViewModel: ObservableObject {
 
 struct FamilyChatView: View {
     @EnvironmentObject private var familyStore: FamilyStore
+    @EnvironmentObject private var moderation: ModerationService
     @StateObject private var viewModel = FamilyChatViewModel()
     @FocusState private var inputFocused: Bool
+    @State private var reportTarget: ReportTarget?
+
+    private var visibleMessages: [FamilyMessage] {
+        viewModel.messages.filter {
+            !moderation.isBlocked(userId: familyStore.member(for: $0.memberId)?.userId)
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -86,13 +94,22 @@ struct FamilyChatView: View {
                             )
                             .padding(.top, 60)
                         }
-                        ForEach(viewModel.messages) { message in
+                        ForEach(visibleMessages) { message in
                             MessageBubble(
                                 message: Message(id: message.id, tripId: message.familyId, memberId: message.memberId, content: message.content, createdAt: message.createdAt),
                                 senderName: familyStore.member(for: message.memberId)?.displayName ?? "Someone",
                                 isMine: message.memberId == familyStore.currentMember?.id
                             )
                             .id(message.id)
+                            .contextMenu {
+                                if message.memberId != familyStore.currentMember?.id {
+                                    Button(role: .destructive) {
+                                        reportTarget = ReportTarget(kind: .familyMessage, contentId: message.id, authorMemberId: message.memberId)
+                                    } label: {
+                                        Label("Report or block", systemImage: "exclamationmark.bubble")
+                                    }
+                                }
+                            }
                         }
                     }
                     .padding()
@@ -125,6 +142,9 @@ struct FamilyChatView: View {
             .padding(.horizontal)
             .padding(.vertical, 8)
             .background(.bar)
+        }
+        .sheet(item: $reportTarget) { target in
+            ReportSheet(kind: target.kind, contentId: target.contentId, authorMemberId: target.authorMemberId, scope: .family)
         }
         .onAppear {
             if let family = familyStore.family {

@@ -159,9 +159,11 @@ final class ChatViewModel: ObservableObject {
 
 struct ChatView: View {
     @EnvironmentObject private var store: TripStore
+    @EnvironmentObject private var moderation: ModerationService
     @StateObject private var viewModel = ChatViewModel()
     @FocusState private var inputFocused: Bool
     @State private var showCreatePoll = false
+    @State private var reportTarget: ReportTarget?
 
     var body: some View {
         NavigationStack {
@@ -171,6 +173,9 @@ struct ChatView: View {
             }
             .navigationTitle("Trip chat")
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(item: $reportTarget) { target in
+                ReportSheet(kind: target.kind, contentId: target.contentId, authorMemberId: target.authorMemberId, scope: .trip)
+            }
             .sheet(isPresented: $showCreatePoll) {
                 CreatePollView { question, options in
                     guard let trip = store.trip, let member = store.currentMember else { return }
@@ -190,19 +195,31 @@ struct ChatView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 10) {
-                    ForEach(viewModel.timeline) { entry in
+                    ForEach(visibleTimeline) { entry in
                         entryView(entry)
                             .id(entry.id)
                     }
                 }
                 .padding()
             }
-            .onChange(of: viewModel.timeline.count) {
-                if let last = viewModel.timeline.last {
+            .onChange(of: visibleTimeline.count) {
+                if let last = visibleTimeline.last {
                     withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
                 }
             }
             .onTapGesture { inputFocused = false }
+        }
+    }
+
+    /// Hides anything authored by someone this user has blocked.
+    private var visibleTimeline: [ChatEntry] {
+        viewModel.timeline.filter { entry in
+            let memberId: UUID
+            switch entry {
+            case .message(let message): memberId = message.memberId
+            case .poll(let poll): memberId = poll.memberId
+            }
+            return !moderation.isBlocked(userId: store.member(for: memberId)?.userId)
         }
     }
 
@@ -215,12 +232,30 @@ struct ChatView: View {
                 senderName: store.member(for: message.memberId)?.displayName ?? "Someone",
                 isMine: message.memberId == store.currentMember?.id
             )
+            .contextMenu {
+                if message.memberId != store.currentMember?.id {
+                    Button(role: .destructive) {
+                        reportTarget = ReportTarget(kind: .tripMessage, contentId: message.id, authorMemberId: message.memberId)
+                    } label: {
+                        Label("Report or block", systemImage: "exclamationmark.bubble")
+                    }
+                }
+            }
         case .poll(let poll):
             PollBubble(
                 poll: poll,
                 authorName: store.member(for: poll.memberId)?.displayName ?? "Someone",
                 viewModel: viewModel
             )
+            .contextMenu {
+                if poll.memberId != store.currentMember?.id {
+                    Button(role: .destructive) {
+                        reportTarget = ReportTarget(kind: .poll, contentId: poll.id, authorMemberId: poll.memberId)
+                    } label: {
+                        Label("Report or block", systemImage: "exclamationmark.bubble")
+                    }
+                }
+            }
         }
     }
 

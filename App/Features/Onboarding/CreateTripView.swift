@@ -32,7 +32,7 @@ struct CreateTripView: View {
                         }
                     }
                     TextField("Name (e.g. Beach Week 2026)", text: $name)
-                    TextField("Destination or location", text: $destination)
+                    DestinationField(destination: $destination)
                 }
                 Section("Dates") {
                     DatePicker("Starts", selection: $startDate, displayedComponents: .date)
