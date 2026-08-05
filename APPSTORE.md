@@ -204,6 +204,52 @@ xcrun simctl io <device-udid> screenshot shot.png
 
 ---
 
+## Premium subscription (built, dormant)
+
+The plumbing ships in v1 but `SubscriptionService.paywallEnabled` is `false`,
+so everything is free and no paywall appears. Flip that one constant to turn
+Premium on in a later release.
+
+**Model:** entitlement belongs to the **group**, not the buyer. One member
+subscribes; everyone in that group gets Premium.
+
+**Free tier:** one group, one active trip, chat, calendar, map — forever.
+Location sharing is never gated.
+**Premium:** unlimited trips and groups, unlimited AI ideas, photo albums,
+expenses.
+
+**Products to create** (App Store Connect → Subscriptions → new group
+"Kinvoy Premium"):
+
+| Product ID | Duration | Price | Intro offer |
+|---|---|---|---|
+| `com.kendallsorenson.getaway.premium.monthly` | 1 month | $4.99 | 7-day free trial |
+| `com.kendallsorenson.getaway.premium.yearly` | 1 year | $29.99 | 7-day free trial |
+
+**Before flipping the switch:**
+
+1. Sign the **Paid Applications Agreement** (Business tab) with banking + tax —
+   takes days to clear, nothing works until it does.
+2. Create the two products above with those exact IDs.
+3. Run migration `008_subscriptions.sql`.
+4. Deploy the Edge Function: `supabase functions deploy verify-subscription`.
+5. Test in the simulator using `App/Resources/Kinvoy.storekit` (Scheme →
+   Options → StoreKit Configuration), then with a Sandbox tester on device.
+6. Set `paywallEnabled = true`, submit the update.
+7. Grandfather early users: insert a far-future row in `subscriptions` for
+   their group so founding families keep Premium free.
+
+**Extra listing fields once Premium is live:** the App Store page will require
+the subscription's name, duration, price, and links to the Terms of Use and
+Privacy Policy in the metadata as well as in the app.
+
+**Hardening for later:** the Edge Function checks the transaction's claims
+(bundle id, product id, expiry) but doesn't yet validate Apple's certificate
+chain. Add App Store Server Notifications V2 so cancellations, refunds, and
+billing failures revoke access automatically instead of waiting for expiry.
+
+---
+
 ## Pre-submission checklist
 
 - [x] App icon (1024, no alpha)
