@@ -6,6 +6,7 @@ struct GetawayApp: App {
     @StateObject private var familyStore = FamilyStore()
     @StateObject private var locationService = LocationService()
     @StateObject private var moderation = ModerationService()
+    @StateObject private var subscriptions = SubscriptionService()
 
     var body: some Scene {
         WindowGroup {
@@ -14,6 +15,7 @@ struct GetawayApp: App {
                 .environmentObject(familyStore)
                 .environmentObject(locationService)
                 .environmentObject(moderation)
+                .environmentObject(subscriptions)
                 .tint(Color(red: 0.98, green: 0.45, blue: 0.25))
         }
     }
@@ -24,6 +26,7 @@ struct RootView: View {
     @EnvironmentObject private var familyStore: FamilyStore
     @EnvironmentObject private var locationService: LocationService
     @EnvironmentObject private var moderation: ModerationService
+    @EnvironmentObject private var subscriptions: SubscriptionService
     @State private var splashFinished = false
     @AppStorage("acceptedTermsVersion") private var acceptedTermsVersion = 0
 
@@ -57,6 +60,7 @@ struct RootView: View {
             await store.bootstrap()
             await familyStore.bootstrap()
             await moderation.refreshBlocks()
+            await subscriptions.refreshEntitlements()
             _ = await minimumSplash
             splashFinished = true
             if store.isDemo { familyStore.enterDemo() }

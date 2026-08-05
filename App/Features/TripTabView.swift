@@ -66,9 +66,19 @@ struct TripsListView: View {
     @EnvironmentObject private var familyStore: FamilyStore
     @State private var showCreate = false
     @State private var showJoin = false
+    @EnvironmentObject private var subscriptions: SubscriptionService
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var showPaywall = false
 
     private var isWide: Bool { sizeClass == .regular }
+
+    /// Free tier: one trip that hasn't ended yet. Joining a trip someone else
+    /// created is always free — only creating more is Premium.
+    private var canStartAnotherTrip: Bool {
+        if subscriptions.hasPremium(familyId: familyStore.family?.id) { return true }
+        let live = store.myTrips.filter { $0.endDate >= Calendar.current.startOfDay(for: .now) }
+        return live.count < 1
+    }
 
     /// Names the group a shared trip belongs to, so someone in several
     /// groups can tell "the Sorensons" from "Disneyland Crew" at a glance.
@@ -105,9 +115,22 @@ struct TripsListView: View {
                 }
                 Section {
                     Button {
-                        showCreate = true
+                        // Free covers one active trip; more needs Premium.
+                        if canStartAnotherTrip {
+                            showCreate = true
+                        } else {
+                            showPaywall = true
+                        }
                     } label: {
-                        Label("Start a trip", systemImage: "plus")
+                        HStack {
+                            Label("Start a trip", systemImage: "plus")
+                            if !canStartAnotherTrip {
+                                Spacer()
+                                Label("Premium", systemImage: "sparkles")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                     Button {
                         showJoin = true
@@ -123,6 +146,7 @@ struct TripsListView: View {
             .navigationBarTitleDisplayMode(isWide ? .inline : .large)
             .sheet(isPresented: $showCreate) { CreateTripView() }
             .sheet(isPresented: $showJoin) { JoinTripView() }
+            .sheet(isPresented: $showPaywall) { PaywallView() }
             .task {
                 await store.refreshMyTrips()
             }
