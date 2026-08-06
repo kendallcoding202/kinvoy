@@ -271,9 +271,14 @@ billing failures revoke access automatically instead of waiting for expiry.
 - [x] Report + block for user-generated content
 - [x] In-app account deletion
 - [x] Encryption declaration (`ITSAppUsesNonExemptEncryption: false`)
-- [ ] Screenshots uploaded (iPhone 6.9" + iPad 13")
-- [ ] Description, keywords, subtitle entered
-- [ ] App Privacy questionnaire submitted
-- [ ] Age rating completed
+- [x] Screenshots uploaded (iPhone 6.9" + iPad 13")
+- [x] Description, keywords, subtitle entered
+- [x] App Privacy questionnaire submitted
+- [x] Age rating completed
 - [ ] Build attached to the version
 - [ ] Submit for review
+
+Everything on our side is done. The only thing standing between here and
+submission is Apple verifying the banking on the Paid Applications Agreement —
+subscription products can't be created, and StoreKit won't return products even
+in sandbox, until it goes active. Check status at App Store Connect → Business.
