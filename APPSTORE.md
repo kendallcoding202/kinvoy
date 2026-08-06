@@ -204,11 +204,11 @@ xcrun simctl io <device-udid> screenshot shot.png
 
 ---
 
-## Premium subscription (built, dormant)
+## Premium subscription (live as of build 3)
 
-The plumbing ships in v1 but `SubscriptionService.paywallEnabled` is `false`,
-so everything is free and no paywall appears. Flip that one constant to turn
-Premium on in a later release.
+`SubscriptionService.paywallEnabled` is `true`, so the gates are active: past
+one group or one active trip, the app prompts for Kinvoy Premium. Setting that
+constant back to `false` makes everything free again without other changes.
 
 **Model:** entitlement belongs to the **group**, not the buyer. One member
 subscribes; everyone in that group gets Premium.
@@ -226,18 +226,31 @@ expenses.
 | `com.kendallsorenson.getaway.premium.monthly` | 1 month | $4.99 | 7-day free trial |
 | `com.kendallsorenson.getaway.premium.yearly` | 1 year | $29.99 | 7-day free trial |
 
-**Before flipping the switch:**
+**Rollout status:**
 
-1. Sign the **Paid Applications Agreement** (Business tab) with banking + tax —
-   takes days to clear, nothing works until it does.
-2. Create the two products above with those exact IDs.
-3. Run migration `008_subscriptions.sql`.
-4. Deploy the Edge Function: `supabase functions deploy verify-subscription`.
-5. Test in the simulator using `App/Resources/Kinvoy.storekit` (Scheme →
-   Options → StoreKit Configuration), then with a Sandbox tester on device.
-6. Set `paywallEnabled = true`, submit the update.
-7. Grandfather early users: insert a far-future row in `subscriptions` for
-   their group so founding families keep Premium free.
+- [x] Migrations `008_subscriptions.sql` and `009_rename.sql` run against prod.
+      Verified: the entitlement RPC returns the right answer, and a client
+      trying to grant itself Premium is rejected 403 by RLS.
+- [x] `paywallEnabled = true`; gating and the group screen's Premium
+      status/upgrade/restore verified in the simulator.
+- [x] Scheme pins `App/Resources/Kinvoy.storekit` (Scheme → Options → StoreKit
+      Configuration) for local purchase testing.
+- [x] Edge Function `verify-subscription` deployed with Verify JWT on —
+      unauthenticated calls get 401. It reads whichever key scheme the project
+      uses (legacy `anon`/`service_role` or the newer publishable/secret), and
+      throws a named error at startup if neither is present.
+- [ ] **Paid Applications Agreement** — banking and tax submitted, Apple still
+      shows *pending verification*. Nothing sells until it clears.
+- [ ] Create the two products above with those exact IDs.
+- [ ] Re-test purchase and restore with a Sandbox tester on a real device.
+- [ ] Attach build 3 to the version and submit.
+
+**Free access for friends:** use **subscription offer codes** (up to a million
+a year, distributed as a link) — *not* app promo codes, which are capped at 100
+per version, expire in 28 days, and only cover the download, which is already
+free. Offer codes appear once the subscription products exist. The comp snippet
+below remains the fallback for grandfathering a specific group: insert a
+far-future row in `subscriptions` for their `group_id`.
 
 **Extra listing fields once Premium is live:** the App Store page will require
 the subscription's name, duration, price, and links to the Terms of Use and

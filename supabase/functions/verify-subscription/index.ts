@@ -12,6 +12,20 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const BUNDLE_ID = "com.kendallsorenson.getaway";
 
+/** Reads the first env var that exists, so this works on both the legacy
+ *  anon/service_role key scheme and the newer publishable/secret one. */
+function env(...names: string[]): string {
+  for (const name of names) {
+    const value = Deno.env.get(name);
+    if (value) return value;
+  }
+  throw new Error(`none of these env vars are set: ${names.join(", ")}`);
+}
+
+const SUPABASE_URL = env("SUPABASE_URL");
+const PUBLIC_KEY = env("SUPABASE_ANON_KEY", "SUPABASE_PUBLISHABLE_KEY");
+const ADMIN_KEY = env("SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY");
+
 const PRODUCT_IDS = new Set([
   "com.kendallsorenson.getaway.premium.monthly",
   "com.kendallsorenson.getaway.premium.yearly",
@@ -51,8 +65,8 @@ Deno.serve(async (req) => {
 
   // The caller must actually belong to the group they're activating.
   const asUser = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!,
+    SUPABASE_URL,
+    PUBLIC_KEY,
     { global: { headers: { Authorization: authHeader } } },
   );
   const { data: userData } = await asUser.auth.getUser();
@@ -96,10 +110,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "expired transaction" }), { status: 400 });
   }
 
-  const admin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
+  const admin = createClient(SUPABASE_URL, ADMIN_KEY);
 
   const { error } = await admin.from("subscriptions").upsert({
     family_id: body.family_id,
