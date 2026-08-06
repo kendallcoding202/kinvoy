@@ -47,12 +47,22 @@ struct WelcomeView: View {
                     }
                     .buttonStyle(.bordered)
 
-                    HStack(spacing: 18) {
-                        Button("Start a trip instead") { showCreate = true }
-                        Button("Join a trip") { showJoin = true }
+                    // Most people arriving here were handed a trip code by a
+                    // friend, not a family code. Buried as small text, they
+                    // read the whole app as a family product they can't use.
+                    Button {
+                        showJoin = true
+                    } label: {
+                        Label("Join a trip with a code", systemImage: "suitcase.fill")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
                     }
-                    .font(.subheadline)
-                    .padding(.top, 4)
+                    .buttonStyle(.bordered)
+
+                    Button("Start a trip instead") { showCreate = true }
+                        .font(.subheadline)
+                        .padding(.top, 4)
 
                     if !AppConfig.isConfigured {
                         Button("Explore a demo") {

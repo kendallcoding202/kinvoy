@@ -333,23 +333,48 @@ struct FamilyMapTab: View {
 /// Shown in family tabs before a family group exists.
 struct FamilySetupPrompt: View {
     let feature: String
+    @EnvironmentObject private var store: TripStore
     @State private var showCreate = false
     @State private var showJoin = false
 
     var body: some View {
         VStack(spacing: 16) {
-            ContentUnavailableView(
-                "Set up your family first",
-                systemImage: "house.badge.plus",
-                description: Text("The family \(feature) unlocks once your family group exists — takes about ten seconds.")
-            )
-            HStack {
-                Button("Create family") { showCreate = true }
-                    .buttonStyle(.borderedProminent)
-                Button("Join with code") { showJoin = true }
-                    .buttonStyle(.bordered)
+            // Someone who joined a trip already has a chat, map, and plans —
+            // they live inside the trip. Point there before selling them a
+            // family group, or the app reads as mostly locked.
+            if let trip = store.myTrips.first {
+                ContentUnavailableView(
+                    "Your trip has its own \(feature)",
+                    systemImage: "suitcase.fill",
+                    description: Text("\(trip.name) has its own plans, chat, map, and ideas inside it. This tab is the everyday \(feature) for a group — separate from any one trip.")
+                )
+                Button("Open \(trip.name)") {
+                    Task {
+                        await store.switchTrip(to: trip)
+                        store.showTripWorkspace = true
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                HStack {
+                    Button("Create a group") { showCreate = true }
+                    Button("Join with code") { showJoin = true }
+                }
+                .font(.subheadline)
+                .padding(.bottom, 40)
+            } else {
+                ContentUnavailableView(
+                    "Set up your group first",
+                    systemImage: "house.badge.plus",
+                    description: Text("The everyday \(feature) unlocks once your group exists — takes about ten seconds.")
+                )
+                HStack {
+                    Button("Create a group") { showCreate = true }
+                        .buttonStyle(.borderedProminent)
+                    Button("Join with code") { showJoin = true }
+                        .buttonStyle(.bordered)
+                }
+                .padding(.bottom, 40)
             }
-            .padding(.bottom, 40)
         }
         .sheet(isPresented: $showCreate) { FamilySetupView(mode: .create) }
         .sheet(isPresented: $showJoin) { FamilySetupView(mode: .join) }

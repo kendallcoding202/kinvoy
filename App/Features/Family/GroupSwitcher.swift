@@ -52,7 +52,7 @@ struct GroupSwitcher: View {
             HStack(spacing: 5) {
                 Image(systemName: "house.fill")
                     .font(.caption)
-                Text(familyStore.family?.name ?? "Group")
+                Text(familyStore.family?.name ?? "Set up a group")
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
                 Image(systemName: "chevron.up.chevron.down")

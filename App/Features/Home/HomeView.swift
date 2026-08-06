@@ -113,15 +113,27 @@ struct HomeView: View {
                     .padding()
                 } else {
                     VStack(alignment: .leading, spacing: 18) {
-                        familyCard
-                        if let trip = store.trip {
+                        // Someone who joined a trip but has no group came here
+                        // for the trip. Lead with it instead of opening on a
+                        // pitch for a group they didn't ask for.
+                        if familyStore.family == nil, let trip = store.trip {
                             tripCard(trip: trip)
                             if !viewModel.forecast.isEmpty {
                                 weatherCard
                             }
                             plansCard
+                            familyCard
+                        } else {
+                            familyCard
+                            if let trip = store.trip {
+                                tripCard(trip: trip)
+                                if !viewModel.forecast.isEmpty {
+                                    weatherCard
+                                }
+                                plansCard
+                            }
+                            chatCard
                         }
-                        chatCard
                     }
                     .padding()
                 }

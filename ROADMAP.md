@@ -31,7 +31,32 @@ arrive.
 - Travel info (flights, lodging, rental car, tickets), weather forecast
 - AI activity/restaurant suggestions (Claude via Edge Function)
 
-## 1.1 — Account recovery (do this first)
+## 1.1 — What a friend sees (done, ships after 1.0 clears review)
+
+Walked the friend path on a clean install: join a trip by code, no group.
+Three of five tabs told them to "Set up your family first" — while the trip
+they'd just joined already had a chat, map, plans, and ideas one tap away in
+the Trips tab. Home led with a pitch for a group they hadn't asked for, and
+the nav chip read a bare "Group". The one button matching what they'd been
+handed — a trip code — was the smallest text on the welcome screen.
+
+Nothing was broken. It just read as "most of this app is locked" to exactly
+the people the invite loop depends on.
+
+Fixed:
+
+- **Welcome** — "Join a trip with a code" is a full-width button alongside the
+  family ones, not a text link. Most arrivals were handed a *trip* code.
+- **Chat / Calendar / Map with a trip but no group** — now "Your trip has its
+  own chat", naming the trip, with a button that opens its workspace. Group
+  setup stays, demoted.
+- **Home with a trip but no group** — leads with the trip; the group card
+  moves below it.
+- **Nav chip** — "Set up a group" instead of a bare "Group".
+
+Before/after screenshots: `~/Desktop/Kinvoy-Screenshots/friend-view/`.
+
+## 1.2 — Account recovery
 
 **The problem.** Every device gets an anonymous Supabase user
 ([SupabaseService.swift:21](App/Services/SupabaseService.swift:21)), and every
