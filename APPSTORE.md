@@ -275,10 +275,26 @@ billing failures revoke access automatically instead of waiting for expiry.
 - [x] Description, keywords, subtitle entered
 - [x] App Privacy questionnaire submitted
 - [x] Age rating completed
-- [ ] Build attached to the version
-- [ ] Submit for review
+- [x] Build attached to the version (build 3)
+- [x] Submitted for review — Aug 5, 2026, submission
+      `ea14e253-6a08-46c7-938b-4523d37e66c1`
 
-Everything on our side is done. The only thing standing between here and
-submission is Apple verifying the banking on the Paid Applications Agreement —
-subscription products can't be created, and StoreKit won't return products even
-in sandbox, until it goes active. Check status at App Store Connect → Business.
+Submitted as one bundle, per Apple's rule that a first subscription group ships
+with an app version: iOS App 1.0 (build 3), the Kinvoy Premium group, and both
+subscriptions.
+
+**Known gaps, deliberately shipped:**
+
+- The purchase chain has never run end to end against Apple's servers. The
+  simulator proved StoreKit resolves both product IDs from the local
+  `.storekit` config, but purchase → `verify-subscription` → `subscriptions`
+  row → group shows Premium has not been exercised in sandbox. Do this on a
+  real device as soon as the products are approved.
+- Subscription levels are inverted — monthly at 1, yearly at 2. App Store
+  Connect locked the control once both products were Ready for Review. Harmless
+  with zero subscribers (it only affects plan switching), but fix it after
+  approval.
+- Yearly carries a second billing plan ("monthly with a 12-month commitment",
+  $2.99/mo) because ASC required both prices at creation. Not offered in the
+  US, and the app models only the single `P1Y`. Worth checking what StoreKit
+  surfaces before selling outside the US.
