@@ -278,6 +278,22 @@ billing failures revoke access automatically instead of waiting for expiry.
 - [x] Build attached to the version (build 3)
 - [x] Submitted for review — Aug 5, 2026, submission
       `ea14e253-6a08-46c7-938b-4523d37e66c1`
+- [x] **Rejected**, metadata only: *"offers auto-renewable subscriptions but
+      does not include a functional link to the Terms of Use (EULA) in the
+      app's metadata."* The paywall carries both links in-app
+      ([PaywallView.swift:238](App/Features/Premium/PaywallView.swift:238)) and
+      both pages return 200 — Apple wants the Terms link on the **product
+      page**. There is a dedicated field for the privacy policy but none for
+      Terms of Use, so it goes at the end of the **Description**:
+
+      ```
+      Terms of Use (EULA): https://kendallcoding202.github.io/kinvoy/terms.html
+      Privacy Policy: https://kendallcoding202.github.io/kinvoy/privacy.html
+      ```
+
+- [ ] Resubmit with **build 4**, which also carries the friend-onboarding
+      fixes. A rejection reopens the version for editing, so the new binary
+      rides along instead of waiting for a separate 1.0.1.
 
 Submitted as one bundle, per Apple's rule that a first subscription group ships
 with an app version: iOS App 1.0 (build 3), the Kinvoy Premium group, and both
