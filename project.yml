@@ -33,6 +33,11 @@ targets:
       path: App/Info.plist
       properties:
         CFBundleDisplayName: Kinvoy
+        # Without these, XcodeGen writes a literal "1" and the build number
+        # comes from Xcode's automatic management at upload time instead of
+        # from CURRENT_PROJECT_VERSION below.
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UISupportedInterfaceOrientations~ipad:
